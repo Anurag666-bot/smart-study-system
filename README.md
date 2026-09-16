@@ -1,219 +1,150 @@
-# SmartStudy System
+# Smart Study System
 
-A role-based, web-based academic and study management system developed using Django. SmartStudy provides a centralized platform for students, teachers, and administrators to manage academic activities, study resources, tasks, attendance, examinations, results, study planning, and system administration.
+A comprehensive Django-based web application designed to enhance learning and study efficiency through intelligent features and personalized learning paths.
 
-The system also incorporates explainable intelligent features such as task prioritization, TF-IDF-based search, TextRank-based text summarization, study planning, recommendations, and academic analytics.
+## Features
 
----
+- **Intelligent Study Planning**: AI-powered study schedule generation based on learning goals and available time
+- **Progress Tracking**: Visual dashboards and analytics to monitor learning progress
+- **Resource Management**: Organize and access study materials, notes, and references
+- **Quiz & Assessment Tools**: Create and take practice quizzes with instant feedback
+- **Collaboration Features**: Study groups and peer learning capabilities
+- **Multi-platform Support**: Responsive design for desktop and mobile use
 
-## Table of Contents
+## Project Structure
 
-- [Overview](#overview)
-- [Objectives](#objectives)
-- [Key Features](#key-features)
-- [User Roles](#user-roles)
-- [Intelligent Features](#intelligent-features)
-- [System Architecture](#system-architecture)
-- [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Database Design](#database-design)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running the System](#running-the-system)
-- [Testing](#testing)
-- [Security](#security)
-- [Backup and Recovery](#backup-and-recovery)
-- [Future Enhancements](#future-enhancements)
-- [Project Status](#project-status)
-- [License](#license)
-- [Contact](#contact)
+```
+smart_study_system/
+├── core/                 # Django project settings and configuration
+├── studyapp/            # Main application logic
+├── docs/                # Documentation files
+├── media/               # User-uploaded media files
+├── backups/             # Database and system backups
+├── requirements.txt     # Python dependencies
+├── manage.py            # Django management script
+├── db.sqlite3           # SQLite database (development)
+├── ER_DIAGRAM.md        # Database schema documentation
+└── generate_schema.py   # Database schema generation utility
+```
 
----
+## Installation
 
-# Overview
+### Prerequisites
 
-Students often manage notes, assignments, deadlines, study schedules, attendance, examination information, and personal study goals using separate tools such as notebooks, calendars, spreadsheets, and task applications.
+- Python 3.8+
+- pip (Python package manager)
+- Virtual environment (recommended)
 
-**SmartStudy System** addresses this problem by providing a centralized web-based platform for academic and study management.
+### Setup Instructions
 
-The system follows a **role-based architecture** with three primary roles:
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd smart_study_system
+   ```
 
-- **Student**
-- **Teacher**
-- **Administrator**
+2. **Create and activate virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-Each role receives access to functionality appropriate to its responsibilities.
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
----
+4. **Apply database migrations**
+   ```bash
+   python manage.py migrate
+   ```
 
-# Objectives
+5. **Create a superuser (admin)**
+   ```bash
+   python manage.py createsuperuser
+   ```
 
-The main objectives of SmartStudy System are to:
+6. **Load sample data (optional)**
+   ```bash
+   python manage.py loaddata sample_data.json
+   ```
 
-- Centralize academic and study-related information.
-- Provide secure role-based access for different types of users.
-- Help students manage notes, tasks, schedules, and study sessions.
-- Allow teachers to manage assignments, attendance, examinations, and results.
-- Provide administrators with tools for managing users, roles, subjects, and system activities.
-- Support intelligent processing of study information.
-- Provide progress tracking and academic analytics.
-- Improve organization and accessibility of academic resources.
-- Maintain an auditable record of important administrative activities.
+## Usage
 
----
+### Development Server
 
-# Key Features
+Start the development server:
+```bash
+python manage.py runserver
+```
 
-## Student Features
+Visit `http://127.0.0.1:8000/` in your web browser.
 
-Students can:
+Access the admin panel at `http://127.0.0.1:8000/admin/` using your superuser credentials.
 
-- Register and authenticate securely.
-- Access a personalized dashboard.
-- Create, edit, view, and manage study notes.
-- Upload and manage note attachments.
-- Create and manage academic tasks.
-- Track task deadlines and priorities.
-- Use the study planner.
-- Schedule study activities.
-- Record study sessions.
-- Create and track academic goals.
-- View attendance information.
-- View examination information and results.
-- Receive notifications and announcements.
-- Monitor study and academic progress.
-- Access relevant study resources.
+### Production Deployment
 
----
+For production deployment, consider:
+- Using a production WSGI server (Gunicorn, uWSGI)
+- Configuring a proper database (PostgreSQL/MySQL)
+- Setting up static file serving
+- Configuring environment variables for security
 
-## Teacher Features
+## Configuration
 
-Teachers can:
+Key configuration files:
+- `core/settings.py` - Main Django settings
+- `core/urls.py` - URL routing configuration
+- `.env` - Environment variables (create based on `.env.example` if available)
 
-- Access a teacher-specific dashboard.
-- Manage assigned subjects.
-- Create and manage assignments.
-- Review and grade student submissions.
-- Add comments or feedback.
-- Record student attendance.
-- View attendance statistics.
-- Manage examination information.
-- Enter and manage student results.
-- Provide academic information to students.
+Environment variables to consider:
+- `SECRET_KEY` - Django secret key
+- `DEBUG` - Set to `False` in production
+- `DATABASE_URL` - Database connection string
+- `ALLOWED_HOSTS` - List of allowed host/domain names
 
----
+## Testing
 
-## Administrator Features
+Run the test suite:
+```bash
+python manage.py test
+```
 
-Administrators can:
+Run specific app tests:
+```bash
+python manage.py test studyapp
+```
 
-- Manage system users.
-- Manage user roles.
-- Manage academic subjects.
-- Manage announcements.
-- Configure system settings.
-- Monitor administrative activities.
-- View audit logs.
-- Manage system-level information.
-- Control access to administrative functionality.
+## Contributing
 
----
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-# Intelligent Features
+Please ensure your code follows the project's coding standards and includes appropriate tests.
 
-SmartStudy includes explainable algorithmic features designed to support study management.
+## Database Schema
 
-## 1. Task Prioritization
+See [ER_DIAGRAM.md](ER_DIAGRAM.md) for detailed database schema documentation.
 
-The task-prioritization mechanism helps determine the relative importance of tasks using factors such as:
+## Backup and Recovery
 
-- Deadline
-- Priority
-- Task status
-- Other relevant task information
+Use the provided backup script:
+```bash
+./backup_study_system.sh
+```
 
-This helps students identify tasks that require earlier attention.
+Backups are stored in the `backups/` directory.
 
----
+## License
 
-## 2. TF-IDF-Based Search
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-The system can use **TF-IDF (Term Frequency-Inverse Document Frequency)** to determine the relevance of terms within study materials.
+## Contact
 
-TF-IDF can be used to improve the relevance of search results by giving greater importance to terms that are significant within a document collection.
-
----
-
-## 3. TextRank Summarization
-
-**TextRank** is a graph-based ranking algorithm used for extractive text summarization.
-
-Within SmartStudy, it can be used to identify important sentences from study material and generate concise summaries.
+For questions or support, please open an issue in the GitHub repository.
 
 ---
 
-## 4. Study Planning
-
-The study-planning functionality helps organize study activities according to:
-
-- Learning goals
-- Available study time
-- Tasks
-- Deadlines
-- Planned activities
-
-The purpose is to provide a structured study schedule rather than requiring students to organize all activities manually.
-
----
-
-## 5. Recommendations and Analytics
-
-The system can use available academic and study activity information to provide useful recommendations and analytical information related to study progress and activities.
-
----
-
-# User Role and Access Model
-
-SmartStudy uses **Role-Based Access Control (RBAC)**.
-
-The primary roles are:
-
-| Role | Main Responsibilities |
-|------|------------------------|
-| **Student** | Notes, tasks, planner, study sessions, goals, attendance, results, notifications |
-| **Teacher** | Subjects, assignments, grading, attendance, examinations, results |
-| **Administrator** | Users, roles, subjects, announcements, settings, audit logs |
-
-The system separates authentication from authorization so that access to protected functionality can be controlled according to the user's assigned role.
-
----
-
-# System Architecture
-
-The system follows a Django-based web application architecture.
-
-```text
-                   ┌─────────────────────┐
-                   │       Users         │
-                   │                     │
-                   │ Student / Teacher   │
-                   │ Administrator       │
-                   └──────────┬──────────┘
-                              │
-                              ▼
-                   ┌─────────────────────┐
-                   │   Django Web App    │
-                   │                     │
-                   │ Authentication      │
-                   │ RBAC                │
-                   │ Business Logic      │
-                   │ Study Management    │
-                   │ Academic Management │
-                   └──────────┬──────────┘
-                              │
-             ┌────────────────┼────────────────┐
-             ▼                ▼                ▼
-      ┌────────────┐   ┌─────────────┐   ┌──────────────┐
-      │ SQLite DB  │   │ File Storage │   │ External     │
-      │            │   │             │   │ Services     │
-      └────────────┘   └─────────────┘   └──────────────┘

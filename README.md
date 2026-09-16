@@ -487,17 +487,6 @@ Potential future improvements include:
 
 ---
 
-## Academic Project
-
-**Project Title:** Smart Study System
-
-**Technology:** Django, Python, HTML, CSS, JavaScript, SQLite
-
-**Project Type:** Full-Stack Web Application with Intelligent Study-Support Features
-
-**Academic Level:** Bachelor of Computer Application (BCA)
-
----
 
 ## Author
 

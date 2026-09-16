@@ -1,0 +1,330 @@
+/* ============================================================
+   SMART STUDY — "Graded Homework" theme
+   Paper, highlighter marks, red-pen corrections, index cards.
+   Pure CSS, no libraries.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --paper:   #f6f4ef;
+    --paper-2: #efece3;
+    --ink:     #1b2130;
+    --ink-dim: #5b5f6e;
+    --rule:    #d9d3c4;
+    --yellow:  #ffe066;
+    --coral:   #ff6f59;
+    --sky:     #7cc7ff;
+    --mint:    #6fe3b4;
+    --violet:  #c9a6ff;
+    --card-1:  #fff3b0;  /* yellow sticky note  */
+    --card-2:  #ffc9de;  /* pink sticky note    */
+    --card-3:  #c3f0d8;  /* mint sticky note    */
+    --card-4:  #bfe0ff;  /* blue sticky note    */
+    --serif:   'Fraunces', serif;
+    --body:    'Inter', system-ui, sans-serif;
+    --mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--body);
+    color: var(--ink);
+    line-height: 1.6;
+    background-image:
+        repeating-linear-gradient(180deg, rgba(27,33,48,0.04) 0px, rgba(27,33,48,0.04) 1px, transparent 1px, transparent 32px),
+        radial-gradient(ellipse 70% 60% at 10% 0%,   rgba(124, 199, 255, 0.85), transparent 65%),
+        radial-gradient(ellipse 65% 55% at 100% 10%, rgba(255, 201, 222, 0.85), transparent 65%),
+        radial-gradient(ellipse 70% 60% at 5% 100%,  rgba(111, 227, 180, 0.80), transparent 65%),
+        radial-gradient(ellipse 65% 55% at 95% 100%, rgba(201, 166, 255, 0.80), transparent 65%),
+        radial-gradient(ellipse 60% 55% at 50% 50%,  rgba(255, 224, 102, 0.75), transparent 70%);
+    background-color: #fef9ec;
+    background-attachment: fixed;
+}
+
+a { color: inherit; }
+
+/* ===== HERO / NAV ===== */
+.hero {
+    background: transparent;
+    border-bottom: 2px solid var(--ink);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 6%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-links a {
+    text-decoration: none;
+    margin-left: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--ink-dim);
+    border-radius: 6px;
+    transition: color 0.15s ease;
+}
+
+.nav-links a:hover {
+    color: var(--ink);
+}
+
+.btn-outline {
+    border: 2px solid var(--ink) !important;
+    background: transparent;
+    color: var(--ink) !important;
+}
+
+.btn-primary {
+    background: var(--ink) !important;
+    color: var(--paper) !important;
+    box-shadow: 3px 3px 0 var(--coral);
+    transition: all 0.15s ease !important;
+}
+
+.btn-primary:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--coral);
+}
+
+/* ===== HERO CONTENT ===== */
+.hero-content {
+    text-align: center;
+    padding: 5.5rem 2rem 6rem;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.hero-content h1 {
+    font-family: var(--serif);
+    font-size: 3.4rem;
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -1px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+/* highlighter swipe under the headline, drawn with a background gradient */
+.hero-content h1::after {
+    content: '';
+    display: block;
+    height: 0.5em;
+    width: 62%;
+    margin: -0.55em auto 0 auto;
+    background: var(--yellow);
+    transform: skewX(-8deg) rotate(-1deg);
+    opacity: 0.85;
+    z-index: -1;
+    position: relative;
+}
+
+.hero-content p {
+    font-size: 1.1rem;
+    color: var(--ink-dim);
+    max-width: 520px;
+    margin: 0 auto 2.2rem;
+}
+
+.btn-large {
+    display: inline-block;
+    background: var(--coral);
+    color: var(--paper);
+    padding: 0.9rem 2rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: all 0.15s ease;
+}
+
+.btn-large:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* ===== FEATURES — index cards ===== */
+.features {
+    padding: 5rem 6%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.features h2, .algorithms h2 {
+    font-family: var(--serif);
+    font-size: 2.1rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 3rem;
+    letter-spacing: -0.3px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2rem;
+    padding-top: 0.5rem;
+}
+
+.feature-card {
+    background: var(--card-1);
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    padding: 1.75rem 1.5rem;
+    position: relative;
+    box-shadow: 5px 5px 0 rgba(27, 33, 48, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* tilt alternates like cards pinned to a corkboard, each its own sticky-note color */
+.feature-grid .feature-card:nth-child(1) { transform: rotate(-1.4deg); background: var(--card-1); }
+.feature-grid .feature-card:nth-child(2) { transform: rotate(1deg);    background: var(--card-2); }
+.feature-grid .feature-card:nth-child(3) { transform: rotate(-0.8deg); background: var(--card-3); }
+.feature-grid .feature-card:nth-child(4) { transform: rotate(1.2deg);  background: var(--card-4); }
+
+.feature-card:hover {
+    transform: rotate(0deg) translateY(-4px);
+    box-shadow: 7px 7px 0 rgba(27, 33, 48, 0.18);
+}
+
+/* pin dot, top center, colored to match its own note */
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+}
+
+.feature-grid .feature-card:nth-child(1)::before { background: var(--coral); }
+.feature-grid .feature-card:nth-child(2)::before { background: var(--violet); }
+.feature-grid .feature-card:nth-child(3)::before { background: var(--mint); }
+.feature-grid .feature-card:nth-child(4)::before { background: var(--sky); }
+
+.feature-card .emoji {
+    font-size: 2.2rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.feature-card h3 {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    font-size: 0.92rem;
+    color: var(--ink-dim);
+}
+
+/* highlighter swipe on the strong terms inside cards */
+.feature-card p strong {
+    font-weight: 600;
+    color: var(--ink);
+    background: linear-gradient(to bottom, transparent 55%, var(--yellow) 55%);
+    padding: 0 0.15em;
+}
+
+/* ===== ALGORITHMS — ruled margin notes ===== */
+.algorithms {
+    padding: 5rem 6%;
+    background: transparent;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+}
+
+.algo-list {
+    max-width: 760px;
+    margin: 0 auto;
+    border-left: 3px solid var(--coral);
+    padding-left: 1.75rem;
+}
+
+.algo-item {
+    background: var(--card-1);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin: 1rem 0;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    color: var(--ink);
+    position: relative;
+}
+
+.algo-item::before {
+    content: '';
+    position: absolute;
+    left: -1.98rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--coral);
+}
+
+.algo-item span {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--coral);
+    display: inline-block;
+    margin-bottom: 0.2rem;
+}
+
+/* ===== FOOTER ===== */
+footer {
+    background: var(--ink);
+    color: #c9cbd6;
+    text-align: center;
+    padding: 2.5rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.8;
+}
+
+footer p:first-child {
+    color: var(--paper);
+    font-family: var(--body);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .hero-content h1 { font-size: 2.4rem; }
+    nav { flex-direction: column; gap: 1rem; padding: 1.25rem 5%; }
+    .algo-list { padding-left: 1.25rem; }
+    .algo-item::before { left: -1.48rem; }
+}

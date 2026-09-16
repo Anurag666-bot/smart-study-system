@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Administrator Audit Log{% endblock %}
+{% block header %}🧾 Administrator Audit Log{% endblock %}
+
+{% block content %}
+<section class="card">
+    <p>Administrative changes are retained with the actor and request metadata.</p>
+    <table>
+        <thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+        <tbody>
+        {% for log in logs %}
+            <tr>
+                <td>{{ log.timestamp|date:"Y-m-d H:i" }}</td>
+                <td>{{ log.actor.username|default:"deleted user" }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.target_type }}{% if log.target_id %} #{{ log.target_id }}{% endif %}</td>
+                <td><code>{{ log.details }}</code></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No administrator actions recorded.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if page_obj.has_other_pages %}
+        <p>
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+        </p>
+    {% endif %}
+</section>
+{% endblock %}

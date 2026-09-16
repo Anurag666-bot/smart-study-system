@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Exams{% endblock %}
+{% block header %}📝 Exams & Results{% endblock %}
+{% block content %}
+<div class="content-card">
+    {% if can_manage %}<a href="{% url 'exam_create' %}" class="btn btn-primary">Create exam</a>{% endif %}
+    {% for exam in exams %}
+        <article class="card">
+            <h2>{{ exam.title }}</h2>
+            <p>{{ exam.subject.name }} · {{ exam.exam_date }} · Maximum {{ exam.max_score }}</p>
+            {% for result in results %}{% if result.exam_id == exam.id %}<p>Your result: {{ result.score }} ({{ result.percentage }}%)</p>{% endif %}{% endfor %}
+            <a href="{% url 'exam_result_create' exam.id %}" class="btn btn-outline">Record/update result</a>
+            {% if can_manage %}
+                <a href="{% url 'teacher_exam_results' exam.id %}" class="btn btn-outline">Class results</a>
+                <a href="{% url 'exam_edit' exam.id %}" class="btn btn-outline">Edit</a>
+                <a href="{% url 'exam_delete' exam.id %}" class="btn btn-outline">Archive</a>
+            {% endif %}
+        </article>
+    {% empty %}<div class="empty-state"><p>No exams are available for your subjects.</p></div>{% endfor %}
+    {% if archived_exams %}
+        <h2>Archived exams</h2>
+        {% for exam in archived_exams %}
+            <article class="card">
+                <strong>{{ exam.title }}</strong> — {{ exam.subject.name }}
+                <form method="post" action="{% url 'exam_restore' exam.id %}" style="display:inline">
+                    {% csrf_token %}<button type="submit" class="btn btn-outline">Restore</button>
+                </form>
+            </article>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

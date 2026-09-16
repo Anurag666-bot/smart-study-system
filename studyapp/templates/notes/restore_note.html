@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Restore Note{% endblock %}
+{% block header %}↩️ Restore Note{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Restore Note</h2>
+    <p>Are you sure you want to restore "<strong>{{ note.title }}</strong>" from trash?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Restore Note</button>
+        <a href="{% url 'trash_notes' %}" class="btn btn-outline">Keep in Trash</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Study Planner{% endblock %}
+{% block header %}📅 Study Planner{% endblock %}
+
+{% block content %}
+<div class="planner-container">
+    <div class="add-plan">
+        <h3>Add Study Plan</h3>
+        <p><a href="{% url 'adaptive_planner' %}" class="btn btn-outline">Build adaptive plan</a></p>
+        <form method="POST" class="form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-success">Add Plan</button>
+        </form>
+    </div>
+    <div class="plan-list">
+        <h3>Your Study Plans</h3>
+        {% if plans %}
+            <ul>
+                {% for plan in plans %}
+                    <li>
+                        <strong>{{ plan.subject }}</strong> – {{ plan.hours }} hours on {{ plan.date }}
+                        <p>{{ plan.notes }}</p>
+                        <a href="{% url 'study_plan_edit' plan.id %}" class="btn btn-outline">Edit</a>
+                        <a href="{% url 'study_plan_delete' plan.id %}" class="btn btn-outline">Delete</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📅</div>
+                <h3>No study plans yet</h3>
+                <p>Your study plans will appear here after you create them. Start by adding your first study plan to begin organizing your study schedule.</p>
+                <a href="#" class="btn btn-success">+ Add First Study Plan</a>
+            </div>
+        {% endif %}
+        {% if archived_plans %}
+            <h3>Archived plans</h3>
+            <ul>
+                {% for plan in archived_plans %}
+                    <li>
+                        <strong>{{ plan.subject }}</strong> – {{ plan.hours }} hours on {{ plan.date }}
+                        <form method="post" action="{% url 'study_plan_restore' plan.id %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline">Restore</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/planner.js' %}"></script>
+{% endblock %}

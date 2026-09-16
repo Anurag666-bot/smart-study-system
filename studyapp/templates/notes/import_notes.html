@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Import Notes{% endblock %}
+{% block header %}📥 Import Notes{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Import Notes</h2>
+    <p>Choose a CSV or JSON file to import notes from.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="import_file">Select File:</label>
+            <input type="file" name="import_file" id="import_file" accept=".csv,.json" required>
+            <small class="form-text text-muted">
+                Supported formats: CSV (.csv) or JSON (.json)<br>
+                CSV should have columns: Title, Content, Summary<br>
+                JSON should be an array of objects with title, content, summary fields
+            </small>
+        </div>
+        <button type="submit" class="btn btn-success">Import Notes</button>
+        <a href="{% url 'notes_list' %}" class="btn btn-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

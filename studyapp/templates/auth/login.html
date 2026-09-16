@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login – Smart Study</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Single Home Button -->
+        <a href="{% url 'home' %}" class="back-home">← Back to Home</a>
+
+        <h2>Login to SmartStudy</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+            {% include '_includes/_forms.html' with field=form.username label="Username" %}
+            {% include '_includes/_forms.html' with field=form.password label="Password" %}
+            {% include '_includes/_buttons.html' with text="Login" type="submit" variant="success" %}
+        </form>
+
+        <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
+        <p class="register-link">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+
+        {% if messages %}
+            {% for m in messages %}
+                <p class="error">{{ m }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <style>
+        /* --- Keep your existing auth.css, then add these tweaks --- */
+        .back-home {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .back-home:hover {
+            background: #f0f4ff;
+            border-color: #3b82f6;
+        }
+        .register-link {
+            margin-top: 1rem;
+        }
+        .register-link a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</body>
+</html>

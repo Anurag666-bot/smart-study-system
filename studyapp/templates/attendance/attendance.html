@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mark Attendance{% endblock %}
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="attendance-container">
+
+    <!-- Main Card -->
+    <div class="attendance-card">
+        <div class="attendance-date">
+            <span class="day">{{ record.date|date:"d" }}</span>
+            <span class="month-year">{{ record.date|date:"F Y" }}</span>
+        </div>
+
+        <div class="attendance-status">
+            {% if record.is_present %}
+                <span class="status-badge present">✅ Present</span>
+            {% else %}
+                <span class="status-badge absent">❌ Absent</span>
+            {% endif %}
+        </div>
+
+        <form method="POST" class="attendance-form">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="form-errors">Please correct the highlighted attendance fields.</div>
+            {% endif %}
+
+            <div class="toggle-wrapper">
+                <label class="toggle-label">
+                    <span class="toggle-text">Mark Present</span>
+                    <div class="toggle-switch">
+                        <input type="checkbox" name="is_present" id="is_present" {% if record.is_present %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="remarks-wrapper">
+                <label for="remarks">Remarks (optional)</label>
+                <input type="text" name="remarks" id="remarks" value="{{ record.remarks }}" placeholder="e.g., Attended online class">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-save">
+                <span>💾</span> Save Attendance
+            </button>
+        </form>
+
+        <div class="attendance-footer">
+            <a href="{% url 'attendance_report' %}" class="btn btn-outline">📊 View Monthly Report</a>
+        </div>
+    </div>
+
+    <!-- Monthly Stats (optional) – we can query in template, but better to keep it simple -->
+    <div class="attendance-stats-mini">
+        <div class="stat-item">
+            <span class="stat-number">{{ record.date|date:"d" }}</span>
+            <span class="stat-label">Today</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{% if record.is_present %}1{% else %}0{% endif %}</span>
+            <span class="stat-label">Present</span>
+        </div>
+        <!-- We can add more stats if we extend the view, but for now keep it minimal -->
+    </div>
+</div>
+
+<style>
+/* === Container === */
+.attendance-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* === Main Card === */
+.attendance-card {
+    background: white;
+    border-radius: 32px;
+    padding: 2rem 2rem 1.5rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    border: 1px solid #e9eef3;
+    text-align: center;
+}
+
+/* === Date Display === */
+.attendance-date {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+}
+.attendance-date .day {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1;
+}
+.attendance-date .month-year {
+    font-size: 1.2rem;
+    color: #5b6e8c;
+}
+
+/* === Status Badge === */
+.attendance-status {
+    margin-bottom: 1.5rem;
+}
+.status-badge {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 40px;
+    font-weight: 500;
+    font-size: 1rem;
+}
+.status-badge.present {
+    background: #d1fae5;
+    color: #065f46;
+}
+.status-badge.absent {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* === Toggle Switch === */
+.toggle-wrapper {
+    margin: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+}
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #1e293b;
+}
+.toggle-switch {
+    position: relative;
+    width: 60px;
+    height: 32px;
+    flex-shrink: 0;
+}
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #cbd5e1;
+    border-radius: 32px;
+    transition: .3s;
+}
+.slider::before {
+    content: "";
+    position: absolute;
+    height: 24px;
+    width: 24px;
+    left: 4px;
+    bottom: 4px;
+    background: white;
+    border-radius: 50%;
+    transition: .3s;
+}
+.toggle-switch input:checked + .slider {
+    background: #3b82f6;
+}
+.toggle-switch input:checked + .slider::before {
+    transform: translateX(28px);
+}
+
+/* === Remarks === */
+.remarks-wrapper {
+    text-align: left;
+    margin: 1rem 0;
+}
+.remarks-wrapper label {
+    display: block;
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 0.25rem;
+}
+.remarks-wrapper input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: 0.2s;
+}
+.remarks-wrapper input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+}
+
+/* === Save Button === */
+.btn-save {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 0.5rem;
+}
+
+/* === Footer === */
+.attendance-footer {
+    margin-top: 1.5rem;
+}
+.attendance-footer .btn-outline {
+    background: transparent;
+    border: 1px solid #3b82f6;
+    color: #3b82f6;
+    padding: 8px 20px;
+}
+.attendance-footer .btn-outline:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+/* === Mini Stats === */
+.attendance-stats-mini {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    margin-top: 2rem;
+    background: white;
+    border-radius: 20px;
+    padding: 1rem 2rem;
+    border: 1px solid #e9eef3;
+}
+.stat-item {
+    text-align: center;
+}
+.stat-number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.stat-label {
+    font-size: 0.8rem;
+    color: #5b6e8c;
+}
+
+/* === Responsive === */
+@media (max-width: 480px) {
+    .attendance-card {
+        padding: 1.5rem;
+    }
+    .attendance-date .day {
+        font-size: 2.5rem;
+    }
+}
+</style>
+{% endblock %}

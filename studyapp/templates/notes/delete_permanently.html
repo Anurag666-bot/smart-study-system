@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Delete Forever{% endblock %}
+{% block header %}🗑️ Delete Forever{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Delete Permanently</h2>
+    <p>Are you sure you want to permanently delete "<strong>{{ note.title }}</strong>?"</p>
+    <p><strong>This action cannot be undone.</strong></p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Delete Forever</button>
+        <a href="{% url 'trash_notes' %}" class="btn btn-outline">Keep in Trash</a>
+    </form>
+</div>
+{% endblock %}

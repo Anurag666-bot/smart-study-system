@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Django
+*.log
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local credentials / tokens
+token.txt
+cookies.txt
+
+# Database dumps / exported data
+*_dump_*.json
+*.dump
+*.sql
+
+# Backups
+backups/
+smart-study-system-backups/
+
+# Local AI/assistant configuration
+.claude/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.bak

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Students{% endblock %}
+{% block header %}👥 Enrolled students{% endblock %}
+{% block content %}
+<div class="content-card">
+    <p><a href="{% url 'teacher_progress_report' %}" class="btn btn-outline">Class progress report</a>
+       <a href="{% url 'teacher_attendance' %}" class="btn btn-outline">Take attendance</a></p>
+    <table>
+        <thead><tr><th>Subject</th><th>Student</th><th>Name</th><th>Enrolled</th></tr></thead>
+        <tbody>
+        {% for enrollment in enrollments %}
+            <tr>
+                <td>{{ enrollment.subject.name }}</td>
+                <td>{{ enrollment.student.username }}</td>
+                <td>{{ enrollment.student.get_full_name|default:'—' }}</td>
+                <td>{{ enrollment.enrolled_at|date:'Y-m-d' }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">No students are enrolled in your assigned subjects.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Student pages">
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

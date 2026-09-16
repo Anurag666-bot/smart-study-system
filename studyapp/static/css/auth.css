@@ -1,0 +1,158 @@
+/* ============================================================
+   SMART STUDY — Auth page, matching the "Graded Homework" theme
+   Paper, highlighter marks, red-pen corrections — now colorful.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --ink:     #1b2130;
+    --ink-dim: #5b5f6e;
+    --rule:    #d9d3c4;
+    --yellow:  #ffe066;
+    --coral:   #ff6f59;
+    --sky:     #7cc7ff;
+    --mint:    #6fe3b4;
+    --violet:  #c9a6ff;
+    --serif:   'Fraunces', serif;
+    --body:    'Inter', system-ui, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--body);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image:
+        radial-gradient(ellipse 70% 60% at 10% 0%,   rgba(124, 199, 255, 0.85), transparent 65%),
+        radial-gradient(ellipse 65% 55% at 100% 10%, rgba(255, 201, 222, 0.85), transparent 65%),
+        radial-gradient(ellipse 70% 60% at 5% 100%,  rgba(111, 227, 180, 0.80), transparent 65%),
+        radial-gradient(ellipse 65% 55% at 95% 100%, rgba(201, 166, 255, 0.80), transparent 65%),
+        radial-gradient(ellipse 60% 55% at 50% 50%,  rgba(255, 224, 102, 0.75), transparent 70%);
+    background-color: #fef9ec;
+    background-attachment: fixed;
+    padding: 2rem;
+}
+
+/* ===== AUTH CARD — an index card, not a generic modal ===== */
+.auth-container {
+    background: #fffdf8;
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 6px;
+    box-shadow: 6px 6px 0 rgba(27, 33, 48, 0.18);
+    text-align: center;
+    position: relative;
+}
+
+/* pin dot, top center, matches the feature cards on the landing page */
+.auth-container::before {
+    content: '';
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--coral);
+    border: 1.5px solid var(--ink);
+}
+
+.auth-container h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.6rem;
+    margin-bottom: 1.75rem;
+    letter-spacing: -0.3px;
+    display: inline-block;
+    position: relative;
+}
+
+/* highlighter swipe under the heading */
+.auth-container h2::after {
+    content: '';
+    display: block;
+    height: 0.45em;
+    width: 70%;
+    margin: -0.5em auto 0 auto;
+    background: var(--yellow);
+    transform: skewX(-8deg) rotate(-1deg);
+    opacity: 0.85;
+    z-index: -1;
+    position: relative;
+}
+
+.auth-container input {
+    width: 100%;
+    padding: 12px 14px;
+    margin: 8px 0;
+    border: 1.5px solid var(--rule);
+    border-radius: 8px;
+    font-family: var(--body);
+    font-size: 1rem;
+    color: var(--ink);
+    background: #fff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-container input::placeholder {
+    color: var(--ink-dim);
+}
+
+.auth-container input:focus {
+    outline: none;
+    border-color: var(--sky);
+    box-shadow: 0 0 0 3px rgba(124, 199, 255, 0.3);
+}
+
+.auth-container button {
+    width: 100%;
+    padding: 12px;
+    background: var(--coral);
+    color: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 1.25rem;
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: all 0.15s ease;
+}
+
+.auth-container button:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--ink);
+}
+
+.auth-container a {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-bottom: 1.5px solid var(--sky);
+}
+
+.auth-container a:hover {
+    border-bottom-color: var(--coral);
+}
+
+.error {
+    color: var(--coral);
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}

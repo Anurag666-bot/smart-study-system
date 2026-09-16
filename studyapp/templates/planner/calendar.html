@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Calendar View{% endblock %}
+{% block header %}📆 Calendar View{% endblock %}
+
+{% block content %}
+<div class="calendar-container">
+    <p>📌 Current month: {% now "F Y" %}</p>
+    <div class="simple-calendar">
+        <p>Your study plans and tasks will appear here on their due dates.</p>
+        <ul>
+            {% for plan in study_plans %}
+                <li>{{ plan.date }} – {{ plan.subject }} ({{ plan.hours }}h)</li>
+            {% empty %}
+                <li>No study plans scheduled.</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'planner' %}" class="btn">Back to Planner</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/calendar.js' %}"></script>
+{% endblock %}

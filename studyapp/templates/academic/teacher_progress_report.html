@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Class progress{% endblock %}
+{% block header %}📈 Class progress report{% endblock %}
+{% block content %}
+<div class="content-card">
+    {% for report in reports %}
+    <article class="card">
+        <h2>{{ report.subject.name }}</h2>
+        <p>{{ report.student_count }} active student{{ report.student_count|pluralize }} · {{ report.exam_result_count }} exam result{{ report.exam_result_count|pluralize }}</p>
+        <p>Exam average: {% if report.exam_average != None %}{{ report.exam_average }}%{% else %}No results{% endif %}</p>
+        <p>Task completion: {{ report.task_completed }}/{{ report.task_total }} ({{ report.task_completion_percent }}%)</p>
+        <p>Attendance: {{ report.attendance.attended_classes }}/{{ report.attendance.scheduled_classes }} ({{ report.attendance.percentage }}%)</p>
+        <a href="{% url 'subject_list' %}" class="btn btn-outline">Subject details</a>
+    </article>
+    {% empty %}
+        <div class="empty-state"><p>No assigned subjects or enrolled students are available.</p></div>
+    {% endfor %}
+    <a href="{% url 'teacher_student_list' %}" class="btn btn-outline">View students</a>
+</div>
+{% endblock %}

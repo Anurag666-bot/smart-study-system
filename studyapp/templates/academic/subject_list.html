@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Subjects{% endblock %}
+{% block header %}📚 Subjects{% endblock %}
+{% block content %}
+<div class="content-card">
+    <div class="page-actions">
+        <a href="{% url 'enrollment_list' %}" class="btn btn-outline">Manage enrollments</a>
+        {% if can_manage %}<a href="{% url 'subject_create' %}" class="btn btn-primary">Add subject</a>{% endif %}
+    </div>
+    {% for subject in subjects %}
+        <article class="card">
+            <h2>{{ subject.code }} – {{ subject.name }}</h2>
+            {% if subject.description %}<p>{{ subject.description }}</p>{% endif %}
+            {% if subject.id in enrolled_ids %}<p><strong>Enrolled</strong></p>{% endif %}
+            <ul>
+                {% for topic in subject.topics.all %}
+                    <li>{{ topic.name }}{% if can_manage %} · <a href="{% url 'topic_edit' topic.id %}">Edit</a> <a href="{% url 'topic_delete' topic.id %}">Delete</a>{% endif %}</li>
+                {% empty %}<li>No topics yet.</li>
+                {% endfor %}
+            </ul>
+            {% if can_manage %}
+                <a href="{% url 'topic_create' subject.id %}" class="btn btn-outline">Add topic</a>
+                <a href="{% url 'teacher_assignment_list' subject.id %}" class="btn btn-outline">Teachers</a>
+                <a href="{% url 'subject_edit' subject.id %}" class="btn btn-outline">Edit</a>
+                <a href="{% url 'subject_delete' subject.id %}" class="btn btn-outline">Archive</a>
+            {% endif %}
+        </article>
+    {% empty %}
+        <div class="empty-state"><h2>No subjects are available yet.</h2><p>Ask an administrator to add a subject.</p></div>
+    {% endfor %}
+</div>
+{% endblock %}

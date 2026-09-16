@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}System Settings{% endblock %}
+{% block header %}🔧 System Settings{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h2>Save a setting</h2>
+    <p>Values must be valid JSON, for example <code>true</code>, <code>42</code>, or <code>{"limit": 10}</code>.</p>
+    <form method="post" class="form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Save setting</button>
+    </form>
+</section>
+<section class="card">
+    <h2>Current settings</h2>
+    <table>
+        <thead><tr><th>Key</th><th>Value</th><th>Updated by</th><th>Updated</th><th></th></tr></thead>
+        <tbody>
+        {% for setting in settings %}
+            <tr>
+                <td>{{ setting.key }}</td>
+                <td><code>{{ setting.value }}</code></td>
+                <td>{{ setting.updated_by.username|default:"system" }}</td>
+                <td>{{ setting.updated_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <form method="post" action="{% url 'admin_setting_delete' setting.id %}">
+                        {% csrf_token %}<button type="submit" class="btn btn-outline">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No settings configured.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

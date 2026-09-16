@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Result for {{ student.username }}{% endblock %}
+{% block header %}{{ exam.title }} — {{ student.username }}{% endblock %}
+{% block content %}
+<div class="form-container">
+    <p>{{ exam.subject.name }} · maximum {{ exam.max_score }}</p>
+    <form method="post" class="form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Save result</button>
+        <a href="{% url 'teacher_exam_results' exam.id %}" class="btn btn-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

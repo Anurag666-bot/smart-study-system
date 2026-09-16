@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Confirm action{% endblock %}
+{% block header %}Confirm action{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>{{ action_label|default:'Archive' }}: {{ object }}</h2>
+    <p>{{ confirmation_text|default:'This hides the subject from new enrollments without deleting academic history.' }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">{{ action_label|default:'Archive' }}</button>
+        <a href="{% url cancel_url %}" class="btn btn-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

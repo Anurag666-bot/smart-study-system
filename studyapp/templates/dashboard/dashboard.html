@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block header %}Dashboard Overview{% endblock %}
+{% block content %}
+<div class="dashboard-cards">
+    <div class="card"><h3>📄 Notes</h3><p>{{ notes_count }}</p><a href="{% url 'notes_list' %}">View</a></div>
+    <div class="card"><h3>✅ Pending Tasks</h3><p>{{ pending_tasks }}</p><a href="{% url 'task_list' %}">Manage</a></div>
+    <div class="card"><h3>📊 Attendance Today</h3><p>{% if attendance_today and attendance_today.is_present %}✅ Present{% else %}❌ Not marked{% endif %}</p><a href="{% url 'attendance' %}">Mark</a></div>
+    <div class="card"><h3>⏱️ Study Hours (30 days)</h3><p>{{ analytics_data.study_minutes_recent }} minutes</p><a href="{% url 'analytics' %}">View analytics</a></div>
+    <div class="card"><h3>🔥 Current Streak</h3><p>{{ analytics_data.current_streak }} day{{ analytics_data.current_streak|pluralize }}</p><a href="{% url 'study_session_list' %}">Record session</a></div>
+</div>
+
+{% if announcements %}
+<section class="dashboard-recommendations">
+    <h3>📢 Announcements</h3>
+    {% for announcement in announcements %}
+    <article class="sample-announcement">
+        <h4>{{ announcement.title }}</h4>
+        <p>{{ announcement.body|linebreaksbr }}</p>
+        <small>{{ announcement.published_at|date:"Y-m-d H:i" }}</small>
+    </article>
+    {% endfor %}
+</section>
+{% endif %}
+
+{% if recommendations_data.recommendations %}
+<div class="dashboard-recommendations">
+    <h3>🎯 Study Recommendations</h3>
+    <div class="rec-grid">
+        {% for rec in recommendations_data.recommendations %}
+        <div class="rec-card rec-{{ rec.priority }} rec-{{ rec.type }}">
+            <div class="rec-icon">{{ rec.icon }}</div>
+            <h4 class="rec-title">{{ rec.title }}</h4>
+            <p class="rec-description">{{ rec.description|truncatewords:12 }}</p>
+            <a href="{{ rec.action_url }}" class="btn btn-sm btn-outline">{{ rec.action_text }}</a>
+        </div>
+        {% endfor %}
+    </div>
+    <a href="{% url 'study_recommendations' %}" class="btn btn-primary mt-2">View All Recommendations</a>
+</div>
+{% endif %}
+{% endblock %}

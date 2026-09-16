@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics{% endblock %}
+{% block header %}📊 Study Analytics{% endblock %}
+
+{% block content %}
+<div class="analytics-cards" 
+     data-completed-percent="{{ completed_percent|floatformat:1 }}"
+     data-attendance-percent="{{ attendance_percent|floatformat:1 }}">
+    <div class="card">
+        <h3>Task Completion</h3>
+        <p>{{ completed_percent|floatformat:1 }}% completed</p>
+        <div class="progress-bar">
+            <div class="progress" style="width: {{ completed_percent }}%;"></div>
+        </div>
+    </div>
+    <div class="card">
+        <h3>Attendance This Month</h3>
+        <p>{{ attendance_percent|floatformat:1 }}% present</p>
+        <div class="progress-bar">
+            <div class="progress" style="width: {{ attendance_percent }}%;"></div>
+        </div>
+    </div>
+</div>
+<div class="content-card">
+    <h2>Recent activity ({{ analytics_data.window_days }} days)</h2>
+    <p>{{ analytics_data.study_minutes_recent }} minutes across {{ analytics_data.study_sessions_recent }} recorded sessions.</p>
+    <p>{{ analytics_data.attendance_present_recent }} of {{ analytics_data.attendance_total_recent }} attendance records marked present.</p>
+    <p>Current study streak: <strong>{{ analytics_data.current_streak }} day{{ analytics_data.current_streak|pluralize }}</strong></p>
+    {% if analytics_data.subject_performance %}
+        <h3>Subject performance</h3>
+        <ul>
+        {% for item in analytics_data.subject_performance %}
+            <li>{{ item.subject }} — {{ item.study_minutes }} minutes{% if item.exam_average != None %}, exam average {{ item.exam_average }}%{% endif %}</li>
+        {% endfor %}
+        </ul>
+    {% else %}<p>No subject activity has been recorded yet.</p>{% endif %}
+</div>
+<div class="analytics-tip">
+    💡 <strong>Tip:</strong> These figures are calculated from your recorded sessions, tasks, attendance, and results.
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/charts.js' %}"></script>
+{% endblock %}

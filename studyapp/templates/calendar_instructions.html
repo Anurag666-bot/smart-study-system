@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Calendar Integration Instructions{% endblock %}
+{% block header %}📅 Calendar Integration Instructions{% endblock %}
+{% block content %}
+<div class="calendar-instructions">
+    <h2>Calendar Integration Instructions</h2>
+    <p>Learn how to export your study schedule to external calendar applications.</p>
+
+    <div class="instructions-section">
+        <h3>iCal Export</h3>
+        <p>You can export your tasks and study plans as an iCal (.ics) file that can be imported into most calendar applications like Google Calendar, Apple Calendar, Outlook, etc.</p>
+        <ol>
+            <li>Navigate to the <a href="{% url 'export_calendar_ical' %}">Calendar Export</a> page</li>
+            <li>Click the "Download iCal File" button</li>
+            <li>Save the generated .ics file to your computer</li>
+            <li>Import the file into your preferred calendar application:</li>
+            <ul>
+                <li><strong>Google Calendar:</strong> Settings → Import & export → Select file → Choose calendar → Import</li>
+                <li><strong>Apple Calendar:</strong> File → Import → Select file → Choose calendar</li>
+                <li><strong>Microsoft Outlook:</strong> File → Open & Export → Import/Export → Import iCalendar (.ics) → Select file</li>
+            </ul>
+        </ol>
+    </div>
+
+    <div class="instructions-section">
+        <h3>What Gets Exported</h3>
+        <ul>
+            <li><strong>Tasks:</strong> All your non-completed tasks with due dates appear as calendar events</li>
+            <li><strong>Study Plans:</strong> Your scheduled study sessions appear as calendar events</li>
+            <li><strong>Event Details:</strong> Each event includes title, description, and time information</li>
+            <li><strong>Reminders:</strong> Tasks due today or tomorrow get automatic reminders</li>
+        </ul>
+    </div>
+
+    <div class="instructions-section">
+        <h3>Updating Your Calendar</h3>
+        <p>Since this is a static export, you'll need to re-export and re-import whenever your schedule changes:</p>
+        <ol>
+            <li>Make changes to your tasks or study plans in the Smart Study System</li>
+            <li>Repeat the export process above</li>
+            <li>Re-import the updated .ics file into your calendar application (most apps will prevent duplicates)</li>
+        </ol>
+    </div>
+
+    <div class="instructions-section">
+        <h3>Troubleshooting</h3>
+        <div class="troubleshooting-item">
+            <h4>Events not showing up?</h4>
+            <p>Make sure you have tasks with due dates or study plans scheduled. Only items with dates are exported to the calendar.</p>
+        </div>
+        <div class="troubleshooting-item">
+            <h4>Wrong time zone?</h4>
+            <p>All events are exported in UTC time. Adjust your calendar application's time zone settings if needed.</p>
+        </div>
+        <div class="troubleshooting-item">
+            <h4>Duplicate events?</h4>
+            <p>Some calendar applications may create duplicates if you import the same file multiple times. Try deleting old imports before re-importing.</p>
+        </div>
+    </div>
+
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+{% endblock %}
+{% block extra_js %}
+<style>
+.calendar-instructions {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.instructions-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.instructions-section h3 {
+    color: #1e293b;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.instructions-section h3::before {
+    content: "📋";
+}
+
+ol, ul {
+    margin-left: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.troubleshooting-item {
+    background: #f8fafc;
+    border-left: 4px solid #3b82f6;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.troubleshooting-item h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #1e40af;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.troubleshooting-item h4::before {
+    content: "⚠️";
+}
+
+.btn-primary {
+    display: inline-block;
+    background: #3b82f6;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+</style>
+{% endblock %}

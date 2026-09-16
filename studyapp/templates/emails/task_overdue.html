@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Overdue Task Notification</title>
+</head>
+<body>
+    <h2>Overdue Task Reminder</h2>
+    <p>Hello {{ user.username|title }},</p>
+    <p>This is a friendly reminder that your task is overdue:</p>
+    <div style="border: 1px solid #ccc; padding: 15px; margin: 15px 0;">
+        <h3>{{ task.title }}</h3>
+        <p><strong>Description:</strong> {{ task.description|default:"No description provided" }}</p>
+        <p><strong>Due Date:</strong> {{ task.due_date }}</p>
+        <p><strong>Priority:</strong> {{ task.priority }}</p>
+        <p><strong>Current Status:</strong> {{ task.status }}</p>
+    </div>
+    <p>Please log in to your Smart Study System account to update this task.</p>
+    <p>Best regards,<br>The Smart Study System Team</p>
+    <hr>
+    <p><small>This is an automated notification. Please do not reply to this email.</small></p>
+</body>
+</html>

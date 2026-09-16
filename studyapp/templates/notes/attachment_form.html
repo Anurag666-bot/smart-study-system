@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Add Note Attachment{% endblock %}
+{% block header %}Add attachment to {{ note.title }}{% endblock %}
+{% block content %}
+<div class="form-container">
+    <p>PDF, text, PNG, and JPEG files up to 5 MB are accepted.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Upload attachment</button>
+        <a href="{% url 'note_detail' note.id %}" class="btn btn-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

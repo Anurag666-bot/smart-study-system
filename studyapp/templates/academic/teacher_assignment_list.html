@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Assignments{% endblock %}
+{% block header %}👩‍🏫 {{ subject.name }} Teachers{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Assign a teacher</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Assign teacher</button>
+    </form>
+</div>
+<div class="content-card">
+    <h2>Active assignments</h2>
+    <ul>
+        {% for assignment in assignments %}
+            <li>
+                {{ assignment.teacher.get_full_name|default:assignment.teacher.username }}
+                <form method="post" action="{% url 'teacher_assignment_delete' assignment.id %}" style="display:inline">
+                    {% csrf_token %}<button type="submit" class="btn btn-outline">Remove</button>
+                </form>
+            </li>
+        {% empty %}<li>No teachers assigned.</li>{% endfor %}
+    </ul>
+    <a href="{% url 'subject_list' %}" class="btn btn-outline">Back to subjects</a>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block header %}🔔 Notifications{% endblock %}
+{% block content %}
+<div class="content-card">
+    {% for notification in notifications %}
+        <article class="card {% if not notification.is_read %}unread{% endif %}">
+            <h2>{{ notification.title }}</h2>
+            <p>{{ notification.message }}</p>
+            <small>{{ notification.created_at|date:'Y-m-d H:i' }}</small>
+            {% if not notification.is_read %}
+                <form method="post" action="{% url 'notification_mark_read' notification.id %}">
+                    {% csrf_token %}<input type="hidden" name="next" value="{% url 'notification_list' %}">
+                    <button type="submit" class="btn btn-outline">Mark read</button>
+                </form>
+            {% endif %}
+        </article>
+    {% empty %}<div class="empty-state"><p>You have no notifications.</p></div>{% endfor %}
+    {% if page_obj.has_other_pages %}
+        <nav>{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %} Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}</nav>
+    {% endif %}
+</div>
+{% endblock %}

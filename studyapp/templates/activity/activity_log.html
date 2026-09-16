@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% block title %}Activity Log{% endblock %}
+{% block header %}📋 Activity Log{% endblock %}
+{% block content %}
+<div class="activity-log">
+    <h2>Activity Log</h2>
+    <p>Track of your recent activities in the system.</p>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+
+    {% if page_obj %}
+    <div class="activity-entries">
+        {% for log in page_obj %}
+        <div class="activity-entry">
+            <div class="activity-header">
+                <span class="activity-user">{{ log.user.username }}</span>
+                <span class="activity-action action-{{ log.action|lower }}">{{ log.get_action_display }}</span>
+                <span class="activity-model">{{ log.model_name }}</span>
+                {% if log.object_id %}<span class="activity-id">#{{ log.object_id }}</span>{% endif %}
+            </div>
+            <div class="activity-details">
+                <p>{{ log.object_repr }}</p>
+            </div>
+            <div class="activity-meta">
+                <span class="activity-time">{{ log.timestamp|date:"M d, Y H:i" }}</span>
+                {% if log.ip_address %}<span class="activity-ip">from {{ log.ip_address }}</span>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>No activity yet</h3>
+        <p>Your activities will appear here as you use the system.</p>
+        {% if not request.user.is_staff %}
+        <p>Staff users can view all system activities.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.activity-log {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.activity-entry {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: white;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.activity-user {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.activity-action {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.action-create {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.action-update {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.action-delete {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.action-login {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.action-logout {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.activity-model {
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.activity-id {
+    background: #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.activity-details p {
+    margin: 0.5rem 0;
+    color: #374151;
+}
+
+.activity-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.activity-ip {
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    gap: 0.5rem;
+}
+
+.step-links a {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #374151;
+}
+
+.step-links a:hover {
+    background: #e5e7eb;
+}
+
+.step-links .current {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #3b82f6;
+    color: white;
+    border-radius: 4px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+}
+
+.empty-state h3 {
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: #6b7280;
+    max-width: 400px;
+    margin: 0 auto 2rem;
+    line-height: 1.5;
+}
+</style>
+{% endblock %}

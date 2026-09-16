@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Please Try Again Later{% endblock %}
+{% block header %}⏳ Too Many Requests{% endblock %}
+{% block content %}
+<div class="empty-state">
+    <h2>Please slow down</h2>
+    <p>Too many requests were received in a short period. Wait a moment and try again.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">Back to home</a>
+</div>
+{% endblock %}

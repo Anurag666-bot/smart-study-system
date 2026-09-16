@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Trash{% endblock %}
+{% block header %}🗑️ Trash{% endblock %}
+{% block content %}
+{% if notes %}
+    <h2>Trashed Notes</h2>
+    <p>Notes in trash will be permanently deleted after 30 days.</p>
+    <div class="notes-list">
+        {% for note in notes %}
+        <div class="note-card">
+            <div class="note-card-header">
+                <h3 class="note-title">
+                    {{ note.title }}
+                </h3>
+                <span class="note-meta">Last changed: {{ note.updated_at|date:"M d, Y" }}</span>
+            </div>
+            {% if note.summary %}
+                <p class="note-summary">{{ note.summary }}</p>
+            {% endif %}
+            <div class="note-actions">
+                <a href="{% url 'restore_note' note.id %}" class="btn btn-sm btn-success">Restore</a>
+                <a href="{% url 'delete_note_permanently' note.id %}" class="btn btn-sm btn-outline">Delete Forever</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🗑️</div>
+        <h3>Trash is empty</h3>
+        <p>Your trash folder is empty. Deleted notes appear here.</p>
+    </div>
+{% endif %}
+{% endblock %}

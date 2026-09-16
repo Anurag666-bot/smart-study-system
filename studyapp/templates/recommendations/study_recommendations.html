@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}Study Recommendations{% endblock %}
+{% block header %}🎯 Personalized Study Recommendations{% endblock %}
+{% block content %}
+<div class="recommendations-container">
+    {% if recommendations %}
+        {% for rec in recommendations %}
+        <div class="recommendation-card rec-{{ rec.priority }} rec-{{ rec.type }}">
+            <div class="rec-header">
+                <span class="rec-icon">{{ rec.icon }}</span>
+                <h3 class="rec-title">{{ rec.title }}</h3>
+                <span class="rec-priority priority-{{ rec.priority }}">{{ rec.priority|title }}</span>
+            </div>
+            <p class="rec-description">{{ rec.description }}</p>
+            <a href="{{ rec.action_url }}" class="btn btn-outline">{{ rec.action_text }}</a>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <h3>No Recommendations Yet</h3>
+        <p>Keep using the system to get personalized study recommendations based on your activity, tasks, and study patterns.</p>
+        <p>Recommendations will appear here as you:</p>
+        <ul>
+            <li>Create and review notes</li>
+            <li>Add and complete tasks</li>
+            <li>Make study plans</li>
+            <li>Track your attendance</li>
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<style>
+.recommendations-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.recommendation-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.rec-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.rec-icon {
+    font-size: 1.5rem;
+}
+
+.rec-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1e293b;
+    flex-grow: 1;
+}
+
+.rec-priority {
+    font-size: 0.85rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.priority-high {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.priority-medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.priority-low {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.rec-description {
+    color: #374151;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.btn-outline {
+    display: inline-block;
+    background: transparent;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Type-based styling */
+.rec-review {
+    border-left-color: #3b82f6;
+}
+
+.rec-task {
+    border-left-color: #10b981;
+}
+
+.rec-deadline {
+    border-left-color: #f59e0b;
+}
+
+.rec-planning {
+    border-left-color: #8b5cf6;
+}
+
+.rec-balance {
+    border-left-color: #ec4899;
+}
+
+.rec-motivation {
+    border-left-color: #f97316;
+}
+
+.rec-challenge {
+    border-left-color: #06b6d4;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #6b7280;
+}
+
+.empty-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.empty-state ul {
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.empty-state li {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.empty-state li::before {
+    content: "→";
+    color: #3b82f6;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

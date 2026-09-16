@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Study System | {% block title %}Dashboard{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/modern.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <style>
+        .logout-form { margin: 0; }
+        .nav-link-button {
+            width: 100%; border: 0; background: transparent; color: #b7bccb;
+            text-align: left; font: inherit; padding: 0.75rem 1rem;
+            cursor: pointer; border-radius: 8px;
+        }
+        .nav-link-button:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <aside class="sidebar">
+            <h2>📖 SmartStudy</h2>
+            <ul>
+                <li><a href="{% url 'dashboard' %}">📊 Dashboard</a></li>
+                <li><a href="{% url 'notes_list' %}">📝 Notes</a></li>
+                <li><a href="{% url 'task_list' %}">✅ Tasks</a></li>
+                <li><a href="{% url 'planner' %}">📅 Planner</a></li>
+                <li><a href="{% url 'planner_event_list' %}">🗓️ Events</a></li>
+                <li><a href="{% url 'subject_list' %}">📚 Subjects</a></li>
+                <li><a href="{% url 'study_session_list' %}">⏱️ Study Sessions</a></li>
+                <li><a href="{% url 'goal_list' %}">🎯 Goals</a></li>
+                <li><a href="{% url 'exam_list' %}">📝 Exams</a></li>
+                <li><a href="{% url 'notification_list' %}">🔔 Notifications</a></li>
+                <li><a href="{% url 'achievement_list' %}">🏆 Achievements</a></li>
+                <li><a href="{% url 'attendance' %}">📋 Attendance</a></li>
+                {% if is_teacher %}
+                <li><a href="{% url 'teacher_student_list' %}">👥 My Students</a></li>
+                <li><a href="{% url 'teacher_progress_report' %}">📈 Class Reports</a></li>
+                <li><a href="{% url 'teacher_attendance' %}">🧾 Take Attendance</a></li>
+                {% endif %}
+                {% if can_access_admin_panel %}
+                <li><a href="{% url 'admin_dashboard' %}">⚙️ Admin Panel</a></li>
+                {% endif %}
+                <li><a href="{% url 'profile' %}">👤 Profile</a></li>
+                <li>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link-button">🚪 Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </aside>
+        <main class="main-content">
+            <header>
+                <h1>{% block header %}Dashboard{% endblock %}</h1>
+                <p>Welcome, {{ request.user.username }}</p>
+                <div class="theme-toggle">
+                    <button id="theme-toggle-btn" title="Toggle Dark/Light Mode">🌙/☀️</button>
+                </div>
+            </header>
+            <div class="content">
+                {% if messages %}
+                    {% for message in messages %}
+                        {% include '_includes/_alerts.html' with message=message alert_type=message.tags dismissible=True %}
+                    {% endfor %}
+                {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Core JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <!-- Page-specific JavaScript -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Import Tasks{% endblock %}
+{% block header %}📥 Import Tasks{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Import Tasks</h2>
+    <p>Choose a CSV or JSON file to import tasks from.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="import_file">Select File:</label>
+            <input type="file" name="import_file" id="import_file" accept=".csv,.json" required>
+            <small class="form-text text-muted">
+                Supported formats: CSV (.csv) or JSON (.json)<br>
+                CSV should have columns: Title, Description, Priority, Status, Due Date<br>
+                JSON should be an array of objects with title, description, priority, status, due_date fields<br>
+                Priority: High, Medium, Low<br>
+                Status: Pending, In Progress, Completed<br>
+                Due Date: YYYY-MM-DD format
+            </small>
+        </div>
+        <button type="submit" class="btn btn-success">Import Tasks</button>
+        <a href="{% url 'task_list' %}" class="btn btn-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

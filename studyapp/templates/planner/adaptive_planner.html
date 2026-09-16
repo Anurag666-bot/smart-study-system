@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Adaptive Planner{% endblock %}
+{% block header %}🧠 Adaptive Study Planner{% endblock %}
+
+{% block content %}
+<div class="planner-container">
+    <section class="card">
+        <h2>Generate an explainable study plan</h2>
+        <p>Suggestions use your active subjects, deadlines, exam history, recent study time, and planner conflicts. Nothing is saved until you confirm.</p>
+        <form method="get" class="form">
+            <label for="days">Days (1–14)</label>
+            <input id="days" name="days" type="number" min="1" max="14" value="{{ days }}" required>
+            <label for="available_minutes">Available minutes per day (30–720)</label>
+            <input id="available_minutes" name="available_minutes" type="number" min="30" max="720" value="{{ available_minutes }}" required>
+            <button type="submit" class="btn btn-outline">Preview suggestions</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Suggestions</h2>
+        {% if suggestions %}
+            <form method="post" class="form">
+                {% csrf_token %}
+                <input type="hidden" name="days" value="{{ days }}">
+                <input type="hidden" name="available_minutes" value="{{ available_minutes }}">
+                <ul class="plan-list">
+                    {% for item in suggestions %}
+                        <li>
+                            <strong>{{ item.subject.name }}</strong>
+                            — {{ item.minutes }} minutes on {{ item.date }}
+                            <span>Priority {{ item.priority }}</span>
+                            <small>Why: {{ item.reasons|join:", " }}</small>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <button type="submit" class="btn btn-success">Add these blocks to planner</button>
+            </form>
+        {% else %}
+            <p class="empty-state">No suggestions are available for this window. Enroll in an active subject or adjust the time range.</p>
+        {% endif %}
+        <p><a href="{% url 'planner' %}" class="btn btn-outline">Back to planner</a></p>
+    </section>
+</div>
+{% endblock %}

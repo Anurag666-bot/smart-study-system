@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block header %}⚙️ Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-stats">
+    <div class="stat-card">
+        <h3>👥 Total Users</h3>
+        <p>{{ total_users }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>📄 Total Notes</h3>
+        <p>{{ total_notes }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>✅ Total Tasks</h3>
+        <p>{{ total_tasks }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>📢 Announcements</h3>
+        <p>{{ total_announcements }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>🧾 Admin Actions</h3>
+        <p>{{ total_admin_logs }}</p>
+    </div>
+</div>
+
+<div class="admin-links">
+    <a href="{% url 'manage_users' %}" class="btn">Manage Users &amp; Roles</a>
+    <a href="{% url 'announcements' %}" class="btn">Announcements</a>
+    <a href="{% url 'admin_settings' %}" class="btn">System Settings</a>
+    <a href="{% url 'admin_audit_logs' %}" class="btn">Audit Log</a>
+    <a href="{% url 'admin:index' %}" class="btn btn-outline">Django Admin (Full)</a>
+</div>
+{% endblock %}

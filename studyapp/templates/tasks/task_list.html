@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Tasks{% endblock %}
+{% block header %}✅ My Tasks{% endblock %}
+
+{% block content %}
+<div class="tasks-container">
+
+    <!-- Header with Add Button -->
+    <div class="tasks-header">
+        <div class="tasks-header-left">
+            <h2>Your Task List</h2>
+            <span class="task-count">{{ tasks|length }} task{{ tasks|length|pluralize }}</span>
+        </div>
+        <div class="tasks-header-right">
+            <a href="{% url 'export_tasks_csv' %}" class="btn btn-outline">📥 Export CSV</a>
+            <a href="{% url 'export_tasks_json' %}" class="btn btn-outline">📥 Export JSON</a>
+            <a href="{% url 'import_tasks' %}" class="btn btn-outline">📤 Import</a>
+            <a href="{% url 'trash_tasks' %}" class="btn btn-outline">🗑️ Trash</a>
+        </div>
+        <a href="{% url 'add_task' %}" class="btn btn-primary">+ Add New Task</a>
+    </div>
+
+    <!-- Task Cards -->
+    {% if tasks %}
+        <div class="task-grid">
+            {% for task in tasks %}
+                <div class="task-card priority-{{ task.priority|lower }}">
+                    <div class="task-card-header">
+                        <h3 class="task-title"><a href="{% url 'task_detail' task.id %}">{{ task.title }}</a></h3>
+                        <div class="task-actions">
+                            <a href="{% url 'edit_task' task.id %}" class="btn-icon" title="Edit Task">✏️</a>
+                            <a href="{% url 'delete_task' task.id %}" class="btn-icon" title="Delete Task">🗑️</a>
+                        </div>
+                    </div>
+
+                    <div class="task-description">
+                        {% if task.description %}
+                            {{ task.description|truncatewords:15 }}
+                        {% else %}
+                            <span class="no-desc">No description</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="task-meta">
+                        <span class="priority-badge priority-{{ task.priority|lower }}">
+                            {{ task.priority }}
+                        </span>
+                        <span class="status-badge status-{{ task.status|lower|cut:' ' }}">
+                            {{ task.status }}
+                        </span>
+                        <span class="due-date {% if task.due_date < today %}overdue{% endif %}">
+                            📅 {{ task.due_date }}
+                            {% if task.due_date < today %}
+                                <span class="overdue-label">(Overdue)</span>
+                            {% endif %}
+                        </span>
+                        {% if task.subject %}<span class="subject-label">📚 {{ task.subject.name }}</span>{% endif %}
+                        <span class="difficulty-label">Difficulty: {{ task.difficulty }}</span>
+                        <span class="progress-label">Progress: {{ task.progress }}%</span>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h3>No tasks yet</h3>
+            <p>Your tasks will appear here after you create them. Start by adding your first task to begin organizing your workload.</p>
+            <a href="{% url 'add_task' %}" class="btn btn-success">+ Create First Task</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+/* ===== Container ===== */
+.tasks-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ===== Header ===== */
+.tasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 20px;
+    border: 1px solid #e9eef3;
+}
+
+.tasks-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.tasks-header-left h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+}
+
+.task-count {
+    font-size: 0.8rem;
+    color: #5b6e8c;
+    background: #f1f5f9;
+    padding: 2px 10px;
+    border-radius: 20px;
+}
+
+/* ===== Task Grid ===== */
+.task-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+/* ===== Task Card ===== */
+.task-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #e9eef3;
+    border-left-width: 5px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -8px rgba(0,0,0,0.1);
+}
+
+/* Priority borders */
+.task-card.priority-high {
+    border-left-color: #ef4444;
+}
+.task-card.priority-medium {
+    border-left-color: #f59e0b;
+}
+.task-card.priority-low {
+    border-left-color: #10b981;
+}
+
+/* ===== Card Header ===== */
+.task-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.task-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+    flex: 1;
+}
+
+.task-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 1rem;
+    color: #5b6e8c;
+    transition: all 0.2s;
+    background: transparent;
+}
+
+.btn-icon:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+/* ===== Description ===== */
+.task-description {
+    color: #5b6e8c;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 0.75rem;
+    line-height: 1.4;
+}
+
+.no-desc {
+    color: #cbd5e1;
+    font-style: italic;
+}
+
+/* ===== Meta Tags ===== */
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin-top: 0.5rem;
+}
+
+/* Priority Badge */
+.priority-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.priority-badge.priority-high {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.priority-badge.priority-medium {
+    background: #ffedd5;
+    color: #92400e;
+}
+.priority-badge.priority-low {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.status-badge.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+.status-badge.status-inprogress {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.status-badge.status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Due Date */
+.due-date {
+    font-size: 0.85rem;
+    color: #5b6e8c;
+}
+
+.due-date.overdue {
+    color: #ef4444;
+    font-weight: 500;
+}
+
+.overdue-label {
+    font-size: 0.7rem;
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 1px 8px;
+    border-radius: 12px;
+    margin-left: 4px;
+}
+
+/* ===== Progress Indicator (for In Progress tasks) ===== */
+.progress-indicator {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 10px;
+    transition: width 0.3s;
+}
+
+.progress-label {
+    font-size: 0.7rem;
+    color: #5b6e8c;
+    flex-shrink: 0;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 28px;
+    border: 1px solid #e9eef3;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #5b6e8c;
+    margin-bottom: 1.5rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+    .tasks-header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+    .tasks-header-left {
+        justify-content: center;
+    }
+    .task-card {
+        padding: 1rem;
+    }
+    .task-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+    }
+    .task-title {
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}

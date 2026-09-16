@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Enrollments{% endblock %}
+{% block header %}🎓 My Subjects{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Enroll in a subject</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Enroll</button>
+    </form>
+</div>
+<div class="content-card">
+    <h2>Active enrollments</h2>
+    <ul>
+        {% for enrollment in enrollments %}
+            <li>
+                {{ enrollment.subject.code }} – {{ enrollment.subject.name }}
+                <form method="post" action="{% url 'enrollment_delete' enrollment.id %}" style="display:inline">
+                    {% csrf_token %}<button type="submit" class="btn btn-outline">Remove</button>
+                </form>
+            </li>
+        {% empty %}<li>No active enrollments.</li>{% endfor %}
+    </ul>
+</div>
+{% endblock %}

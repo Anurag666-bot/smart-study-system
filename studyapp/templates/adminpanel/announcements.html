@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Announcements{% endblock %}
+{% block header %}📢 Announcements{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h2>Publish an announcement</h2>
+    <form method="post" class="form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Save announcement</button>
+    </form>
+</section>
+
+<section class="card">
+    <h2>Announcements</h2>
+    {% for announcement in announcements %}
+        <article class="sample-announcement">
+            <h3>{{ announcement.title }}</h3>
+            <p>{{ announcement.body|linebreaksbr }}</p>
+            <small>
+                {% if announcement.is_published %}Published{% else %}Draft{% endif %}
+                {% if announcement.published_at %} {{ announcement.published_at|date:"Y-m-d H:i" }}{% endif %}
+                by {{ announcement.created_by.username|default:"system" }}
+            </small>
+            <div>
+                <a href="{% url 'announcement_edit' announcement.id %}" class="btn btn-outline">Edit</a>
+                <form method="post" action="{% url 'announcement_delete' announcement.id %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline">Delete</button>
+                </form>
+            </div>
+        </article>
+    {% empty %}
+        <p class="empty-state">No announcements have been created.</p>
+    {% endfor %}
+</section>
+{% endblock %}

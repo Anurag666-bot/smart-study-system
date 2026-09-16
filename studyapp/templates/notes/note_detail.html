@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}{{ note.title }}{% endblock %}
+{% block header %}{{ note.title }}{% endblock %}
+{% block content %}
+<div class="note-detail">
+    <p><small>{{ note.created_at|date:"Y-m-d H:i" }}</small></p>
+    <p><a href="{% url 'edit_note' note.id %}" class="btn btn-outline">Edit note</a></p>
+    <div class="summary-box"><strong>📌 Summary:</strong> {{ note.summary|default:"Not available" }}</div>
+    <div class="content-box">{{ note.content|linebreaks }}</div>
+    {% if note.file %}<p><a href="{% url 'note_file' note.id %}">📎 Download file</a></p>{% endif %}
+    <h2>Attachments</h2>
+    <p><a href="{% url 'note_attachment_add' note.id %}" class="btn btn-outline">Add attachment</a></p>
+    <ul>
+        {% for attachment in note.attachments.all %}
+            <li><a href="{% url 'note_attachment_file' attachment.id %}">{{ attachment.original_name }}</a> ({{ attachment.size }} bytes)
+                <form method="post" action="{% url 'note_attachment_delete' attachment.id %}" style="display:inline">
+                    {% csrf_token %}<button type="submit" class="btn btn-outline">Delete</button>
+                </form>
+            </li>
+        {% empty %}<li>No additional attachments.</li>{% endfor %}
+    </ul>
+    <a href="{% url 'notes_list' %}" class="btn">← Back</a>
+</div>
+{% endblock %}

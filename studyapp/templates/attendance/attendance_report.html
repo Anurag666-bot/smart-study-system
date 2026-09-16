@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Report{% endblock %}
+{% block header %}📊 Attendance Report – {{ month }}/{{ year }}{% endblock %}
+
+{% block content %}
+<div class="attendance-stats">
+    <div class="stat-card">
+        <h3>Total Days</h3>
+        <p>{{ total_days }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Present</h3>
+        <p>{{ present_days }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Attendance %</h3>
+        <p>{{ percentage|floatformat:1 }}%</p>
+    </div>
+    <div class="stat-card">
+        <h3>Target (75%)</h3>
+        <p>{{ attendance_summary.classes_needed }} needed</p>
+    </div>
+    <div class="stat-card">
+        <h3>Safe absences</h3>
+        <p>{{ attendance_summary.safe_missed_classes }}</p>
+    </div>
+</div>
+
+<div class="attendance-details">
+    <h3>Daily Records</h3>
+    <ul>
+        {% for rec in records %}
+            <li>
+                {{ rec.date|date:"F d, Y" }} –
+                {% if rec.status == 'PRESENT' %}✅ Present
+                {% elif rec.status == 'LATE' %}⏰ Late
+                {% elif rec.status == 'EXCUSED' %}🟡 Excused
+                {% elif rec.is_present %}✅ Present
+                {% else %}❌ Absent{% endif %}
+                {% if rec.remarks %} ({{ rec.remarks }}){% endif %}
+            </li>
+        {% empty %}
+            <li>No records for this month.</li>
+        {% endfor %}
+    </ul>
+</div>
+<a href="{% url 'attendance' %}" class="btn">← Back to Today</a>
+{% endblock %}

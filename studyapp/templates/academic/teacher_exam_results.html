@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ exam.title }} results{% endblock %}
+{% block header %}{{ exam.title }} — class results{% endblock %}
+{% block content %}
+<div class="content-card">
+    <p>{{ exam.subject.name }} · {{ exam.exam_date }} · Maximum {{ exam.max_score }}</p>
+    <table>
+        <thead><tr><th>Student</th><th>Score</th><th>Percentage</th><th>Feedback</th><th></th></tr></thead>
+        <tbody>
+        {% for row in student_rows %}
+            <tr>
+                <td>{{ row.student.username }}</td>
+                <td>{% if row.result %}{{ row.result.score }}{% else %}—{% endif %}</td>
+                <td>{% if row.result %}{{ row.result.percentage }}%{% else %}—{% endif %}</td>
+                <td>{% if row.result %}{{ row.result.feedback|default:'—' }}{% else %}—{% endif %}</td>
+                <td>{% if can_edit %}<a href="{% url 'teacher_exam_result_edit' exam.id row.student.id %}">{% if row.result %}Edit{% else %}Enter{% endif %}</a>{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No active students are enrolled in this subject.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'exam_list' %}" class="btn btn-outline">Back to exams</a>
+</div>
+{% endblock %}

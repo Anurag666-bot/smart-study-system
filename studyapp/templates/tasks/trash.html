@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Trash{% endblock %}
+{% block header %}🗑️ Trash{% endblock %}
+{% block content %}
+{% if tasks %}
+    <h2>Trashed Tasks</h2>
+    <p>Trashed tasks remain here until you restore or permanently delete them.</p>
+    <div class="task-grid">
+        {% for task in tasks %}
+        <div class="task-card priority-{{ task.priority|lower }}">
+            <div class="task-card-header">
+                <h3 class="task-title">{{ task.title }}</h3>
+            </div>
+            <div class="task-meta">
+                <span class="priority-badge priority-{{ task.priority|lower }}">
+                    {{ task.priority }}
+                </span>
+                <span class="status-badge status-{{ task.status|lower|cut:' ' }}">
+                    {{ task.status }}
+                </span>
+                <span class="deleted-date">Last changed: {{ task.updated_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="task-actions">
+                <a href="{% url 'restore_task' task.id %}" class="btn-icon" title="Restore Task">↩️</a>
+                <a href="{% url 'delete_task_permanently' task.id %}" class="btn-icon" title="Delete Forever">✕</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🗑️</div>
+        <h3>Trash is empty</h3>
+        <p>Your trash folder is empty. Deleted tasks appear here.</p>
+    </div>
+{% endif %}
+{% endblock %}

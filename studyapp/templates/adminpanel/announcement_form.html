@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Edit Announcement{% endblock %}
+{% block header %}✏️ Edit Announcement{% endblock %}
+
+{% block content %}
+<section class="card">
+    <form method="post" class="form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Save changes</button>
+        <a href="{% url 'announcements' %}" class="btn btn-outline">Cancel</a>
+    </form>
+</section>
+{% endblock %}

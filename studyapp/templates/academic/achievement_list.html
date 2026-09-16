@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Achievements{% endblock %}
+{% block header %}🏆 Achievements{% endblock %}
+{% block content %}
+<div class="content-card">
+    {% for award in awards %}
+        <article class="card">
+            <h2>{{ award.achievement.name }}</h2>
+            <p>{{ award.achievement.description }}</p>
+            <p>{{ award.achievement.points }} points · Awarded {{ award.awarded_at|date:'Y-m-d H:i' }}</p>
+        </article>
+    {% empty %}
+        <div class="empty-state"><p>No achievements yet. Record study sessions and complete tasks to earn them.</p></div>
+    {% endfor %}
+</div>
+{% endblock %}

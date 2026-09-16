@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Goals{% endblock %}
+{% block header %}🎯 Study Goals{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Create a goal</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save goal</button>
+    </form>
+</div>
+<div class="content-card">
+    <h2>My goals</h2>
+    {% for goal in goals %}
+        <article class="card">
+            <h3>{{ goal.title }}</h3>
+            <p>{{ goal.current_value }} / {{ goal.target_value }} {{ goal.unit }} · {{ goal.get_status_display }}</p>
+            <p>Target: {{ goal.target_date }}</p>
+            <a href="{% url 'goal_edit' goal.id %}" class="btn btn-outline">Edit</a>
+            <form method="post" action="{% url 'goal_delete' goal.id %}" style="display:inline">
+                {% csrf_token %}<button type="submit" class="btn btn-outline">Archive</button>
+            </form>
+        </article>
+    {% empty %}<div class="empty-state"><p>No goals yet.</p></div>{% endfor %}
+    {% if archived_goals %}
+        <h2>Archived goals</h2>
+        {% for goal in archived_goals %}
+            <article class="card">
+                <h3>{{ goal.title }}</h3>
+                <form method="post" action="{% url 'goal_restore' goal.id %}">
+                    {% csrf_token %}<button type="submit" class="btn btn-outline">Restore</button>
+                </form>
+            </article>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

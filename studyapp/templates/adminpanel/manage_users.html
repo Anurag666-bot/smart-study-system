@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block header %}👥 Manage Users and Roles{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h2>Assign a role</h2>
+    <form method="post" class="form">
+        {% csrf_token %}
+        {{ role_form.as_p }}
+        <button type="submit" class="btn btn-success">Assign role</button>
+    </form>
+</section>
+
+<section class="card">
+    <h2>Users</h2>
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Staff?</th>
+                <th>Application roles</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.is_staff|yesno:"Yes,No" }}</td>
+                    <td>
+                        {% for assignment in user.profile.user_roles.all %}
+                            {{ assignment.role.code }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}None{% endfor %}
+                    </td>
+                    <td>{{ user.date_joined|date:"Y-m-d" }}</td>
+                    <td><a href="{% url 'admin:auth_user_change' user.id %}" class="btn-sm">Edit</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7">No users yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

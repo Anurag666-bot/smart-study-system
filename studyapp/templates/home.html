@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+<body>
+<div class="hero">
+<nav>
+<div class="logo">📖 SmartStudy</div>
+<div class="nav-links">
+<a href="#features">Features</a>
+<a href="#algorithms">Algorithms</a>
+<a href="{% url 'login' %}" class="btn-outline">Login</a>
+<a href="{% url 'register' %}" class="btn-primary">Get Started</a>
+</div>
+</nav>
+<div class="hero-content">
+<h1>Study Smarter, Not Harder</h1>
+<p> study management with TextRank summarization, TF‑IDF search, and smart task prioritization.</p>
+<a href="{% url 'register' %}" class="btn-large">Start Free</a>
+</div>
+</div>
+
+<section id="features" class="features">
+<h2>Powerful Features</h2>
+<div class="feature-grid">
+<div class="feature-card"><span class="emoji">📝</span><h3>Smart Notes</h3><p>Automatic extractive summaries using <strong>TextRank</strong>.</p></div>
+<div class="feature-card"><span class="emoji">🔍</span><h3>TF‑IDF Search</h3><p>Find relevant notes instantly with term frequency ranking.</p></div>
+<div class="feature-card"><span class="emoji">⏰</span><h3>Priority Scheduler</h3><p>Tasks automatically sorted by urgency and importance.</p></div>
+<div class="feature-card"><span class="emoji">📊</span><h3>Analytics</h3><p>Track progress, attendance, and completion with insights.</p></div>
+</div>
+</section>
+
+<section id="algorithms" class="algorithms">
+<h2>Built‑in Academic Algorithms</h2>
+<p class="algo-intro">       These aren't just features — they're the three algorithms this project implements from scratch. Here's exactly what each one does, and why it actually helps you study.</p>
+
+<div class="algo-list">
+
+  <div class="algo-item">
+    <span>🧠 TextRank — Note Summarization</span>
+    <p class="algo-how"><strong>How it works:</strong> Your note is split into sentences. Each sentence is compared to every other sentence by how many words they share, forming a graph of connections. A PageRank‑style scoring pass then runs over that graph — sentences strongly connected to many other important sentences rise to the top, the same way an important webpage is one that many other important pages link to.</p>
+    <p class="algo-why"><strong>Why it helps you study:</strong> Instead of re‑reading a full page of lecture notes the night before an exam, you get the 2–3 sentences that actually carry the core ideas — a fast way to refresh your memory across many topics without losing the key facts.</p>
+  </div>
+
+  <div class="algo-item">
+    <span>📐 TF‑IDF — Note Search</span>
+    <p class="algo-how"><strong>How it works:</strong> For every word in your search, the system measures how often it appears in one specific note (term frequency) against how rare that word is across <em>all</em> your notes (inverse document frequency). Common words like "the" or "study" score low everywhere; specific terms like "mitochondria" or "recursion" score high wherever they actually matter.</p>
+    <p class="algo-why"><strong>Why it helps you study:</strong> Search across hundreds of saved notes and get the one that's actually <em>about</em> your topic first — not just any note that happens to mention the word once in passing.</p>
+  </div>
+
+  <div class="algo-item">
+    <span>⚡ Priority Scheduler — Task Ordering</span>
+    <p class="algo-how"><strong>How it works:</strong> Each task gets a weight for how important it is (High/Medium/Low) and a separate urgency score that climbs the closer — or further past — its deadline gets. The two are multiplied together and tasks are sorted by that combined score.</p>
+    <p class="algo-why"><strong>Why it helps you study:</strong> Your to‑do list reorders itself automatically as deadlines approach, so a high‑priority assignment due tomorrow always surfaces above a low‑priority one due next month — even if you added them in the wrong order.</p>
+  </div>
+
+</div>
+</section>
+
+<footer>
+<p>Smart Study Management System – Final Year Project (CACS452)</p>
+<p>© 2026 | Algorithms implemented from scratch</p>
+<p class="developer">Developed by Anurag Kumar Das</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Notes{% endblock %}
+{% block header %}📝 My Notes{% endblock %}
+{% block content %}
+<div class="notes-header">
+    <div class="header-actions">
+        <a href="{% url 'upload_note' %}" class="btn">+ Upload</a>
+        <a href="{% url 'export_notes_csv' %}" class="btn btn-outline">📥 Export CSV</a>
+        <a href="{% url 'export_notes_json' %}" class="btn btn-outline">📥 Export JSON</a>
+        <a href="{% url 'import_notes' %}" class="btn btn-outline">📤 Import</a>
+    </div>
+    <form method="GET" action="{% url 'search_notes' %}">
+        {% csrf_token %}
+        <input type="text" name="q" placeholder="Search notes..." value="{{ search_query|default:'' }}">
+        <button type="submit" class="btn">🔍</button>
+    </form>
+</div>
+<div class="notes-list">
+    {% for note in notes %}
+        <div class="note-card">
+            <div class="note-card-header">
+                <h3 class="note-title"><a href="{% url 'note_detail' note.id %}">{{ note.title }}</a></h3>
+                <div class="note-actions">
+                    <a href="{% url 'delete_note' note.id %}" class="btn-icon" title="Delete Note">🗑️</a>
+                </div>
+            </div>
+            <p class="note-meta">{{ note.created_at|date:"Y-m-d" }}</p>
+            <p class="note-summary">{{ note.summary|truncatewords:20|default:"No summary" }}</p>
+        </div>
+    {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h3>No notes yet</h3>
+            <p>Your notes will appear here after you upload them. Start by uploading your first note to begin building your knowledge base.</p>
+            <a href="{% url 'upload_note' %}" class="btn btn-success">+ Upload First Note</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

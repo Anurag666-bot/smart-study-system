@@ -1,0 +1,16 @@
+{% comment %} Reusable Card Components {% endcomment %}
+<div class="card card-{{ variant|default:'default' }} {% if extra_class %}{{ extra_class }}{% endif %}">
+    {% if header %}
+        <div class="card-header">
+            {{ header }}
+        </div>
+    {% endif %}
+    <div class="card-body">
+        {{ content|safe }}
+    </div>
+    {% if footer %}
+        <div class="card-footer">
+            {{ footer }}
+        </div>
+    {% endif %}
+</div>

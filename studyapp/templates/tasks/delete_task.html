@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Delete Task{% endblock %}
+{% block header %}🗑️ Delete Task{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Delete Task</h2>
+    <p>Are you sure you want to move "<strong>{{ task.title }}</strong>" to trash?</p>
+    <p>This action can be undone from the trash folder.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Move to Trash</button>
+        <a href="{% url 'task_list' %}" class="btn btn-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

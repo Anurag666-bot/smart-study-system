@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Planner Events{% endblock %}
+{% block header %}🗓️ Planner Events{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Add an event</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save event</button>
+    </form>
+</div>
+<div class="content-card">
+    {% for event in events %}
+        <article class="card">
+            <h2>{{ event.title }}</h2>
+            <p>{{ event.starts_at|date:'Y-m-d H:i' }} – {{ event.ends_at|date:'Y-m-d H:i' }}</p>
+            {% if event.subject %}<p>{{ event.subject.name }}</p>{% endif %}
+            <a href="{% url 'planner_event_edit' event.id %}" class="btn btn-outline">Edit</a>
+            <form method="post" action="{% url 'planner_event_delete' event.id %}" style="display:inline">
+                {% csrf_token %}<button type="submit" class="btn btn-outline">Delete</button>
+            </form>
+            <h4>Reminders</h4>
+            <ul>
+                {% for reminder in event.reminders.all %}
+                    <li>
+                        {{ reminder.remind_at|date:'Y-m-d H:i' }}
+                        {% if reminder.sent_at %}(sent){% endif %}
+                        <form method="post" action="{% url 'planner_event_reminder_delete' reminder.id %}" style="display:inline">
+                            {% csrf_token %}<button type="submit" class="btn btn-outline">Remove</button>
+                        </form>
+                    </li>
+                {% empty %}<li>No reminders.</li>{% endfor %}
+            </ul>
+            <form method="post" action="{% url 'planner_event_reminder_add' event.id %}">
+                {% csrf_token %}
+                {{ reminder_form.remind_at }}
+                <button type="submit" class="btn btn-outline">Add reminder</button>
+            </form>
+        </article>
+    {% empty %}<div class="empty-state"><p>No planner events yet.</p></div>{% endfor %}
+    {% if archived_events %}
+        <h2>Archived events</h2>
+        {% for event in archived_events %}
+            <article class="card">
+                <h3>{{ event.title }}</h3>
+                <form method="post" action="{% url 'planner_event_restore' event.id %}">
+                    {% csrf_token %}<button type="submit" class="btn btn-outline">Restore</button>
+                </form>
+            </article>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Task{% endblock %}
+{% block header %}✏️ Edit Task: {{ task.title }}{% endblock %}
+
+{% block content %}
+<form method="POST" class="form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Update Task</button>
+    <a href="{% url 'task_list' %}" class="btn">Cancel</a>
+</form>
+{% endblock %}

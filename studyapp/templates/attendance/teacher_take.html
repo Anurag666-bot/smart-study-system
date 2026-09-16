@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Take attendance{% endblock %}
+{% block header %}🧾 Take subject attendance{% endblock %}
+{% block content %}
+<div class="form-container">
+    <p>Select a subject and submit a status for one enrolled student. Existing records for the same subject and date are updated.</p>
+    <form method="get" class="form">
+        <label for="id_subject">Subject</label>
+        {{ form.subject }}
+        <button type="submit" class="btn btn-outline">Load students</button>
+    </form>
+    {% if selected_subject %}
+    <form method="post" class="form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Save attendance</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

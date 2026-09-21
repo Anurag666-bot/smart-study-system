@@ -4,6 +4,7 @@ import json
 import os
 import time
 from datetime import date, datetime, timedelta, timezone as dt_timezone
+from functools import wraps
 
 import magic              # MIME type validation
 import PyPDF2             # PDF text extraction
@@ -98,62 +99,50 @@ from .services.planner import build_adaptive_plan
 
 def rate_limit(key_prefix, limit=5, period=60):
     """
-    Decorator to rate limit views based on IP address.
+    Rate limit authentication-sensitive requests by client IP.
 
-    Args:
-        key_prefix: Unique key prefix for this view
-        limit: Number of requests allowed in the period
-        period: Time period in seconds
+    Only POST requests consume the rate-limit budget. GET requests are
+    allowed so users can continue to access the login/registration forms.
     """
     def decorator(view_func):
+        @wraps(view_func)
         def _wrapped_view(request, *view_args, **view_kwargs):
-            # Get client IP address
-            ip = request.META.get('REMOTE_ADDR')
-            if not ip:
-                # If we can't get IP, allow the request (fail open for safety)
+            if request.method != 'POST':
                 return view_func(request, *view_args, **view_kwargs)
 
-            # Create cache key
-            cache_key = f"rate_limit:{key_prefix}:{ip}"
+            ip = request.META.get('REMOTE_ADDR')
+            if not ip:
+                return view_func(request, *view_args, **view_kwargs)
 
-            # Get current count
+            cache_key = f"rate_limit:{key_prefix}:{ip}"
             current_count = cache.get(cache_key, 0)
 
-            # Check if limit exceeded
             if current_count >= limit:
-                messages.error(request, 'Too many requests. Please try again later.')
-                # For login/register, we should still show the form but with error
-                if view_func.__name__ in ['login_view', 'register_view']:
-                    # For POST requests, we'll return the form with an error without processing
-                    if request.method == 'POST':
-                        if view_func.__name__ == 'login_view':
-                            form = AuthenticationForm(request)
-                            form.add_error(None, 'Too many requests. Please try again later.')
-                            return render(request, "auth/login.html", {"form": form})
-                        else:  # register_view
-                            form = RegisterForm()
-                            form.add_error(None, 'Too many requests. Please try again later.')
-                            return render(request, 'auth/register.html', {'form': form})
-                    else:
-                        # For GET requests, just show the form with an error message
-                        if view_func.__name__ == 'login_view':
-                            form = AuthenticationForm(request)
-                            messages.error(request, 'Too many requests. Please try again later.')
-                            return render(request, "auth/login.html", {"form": form})
-                        else:  # register_view
-                            form = RegisterForm()
-                            messages.error(request, 'Too many requests. Please try again later.')
-                            return render(request, 'auth/register.html', {'form': form})
-                else:
-                    # For other views, return an error response
-                    return render(request, 'errors/429.html', status=429)
+                form = (
+                    AuthenticationForm(request)
+                    if view_func.__name__ == 'login_view'
+                    else RegisterForm()
+                )
 
-            # Increment the counter
+                form.add_error(
+                    None,
+                    'Too many requests. Please try again later.'
+                )
+
+                template = (
+                    "auth/login.html"
+                    if view_func.__name__ == 'login_view'
+                    else "auth/register.html"
+                )
+
+                return render(request, template, {"form": form}, status=429)
+
             cache.set(cache_key, current_count + 1, period)
 
-            # Call the original view
             return view_func(request, *view_args, **view_kwargs)
+
         return _wrapped_view
+
     return decorator
 
 
@@ -162,30 +151,63 @@ def rate_limit(key_prefix, limit=5, period=60):
 # ============================================================
 
 class RegisterForm(forms.Form):
-    username = forms.CharField(max_length=150)
+    username = forms.CharField(
+        max_length=150,
+        min_length=3,
+        strip=True,
+    )
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput)
 
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError(
+                "A user with that username already exists."
+            )
+
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError(
+                "A user with that email already exists."
+            )
+
+        return email
+
     def clean_password(self):
         password = self.cleaned_data.get('password')
+
         if password:
             candidate = User(
                 username=self.cleaned_data.get('username', ''),
                 email=self.cleaned_data.get('email', ''),
             )
+
             try:
                 validate_password(password, user=candidate)
             except ValidationError as exc:
                 raise forms.ValidationError(exc.messages) from exc
+
         return password
 
     def clean(self):
         cleaned_data = super().clean()
+
         password = cleaned_data.get("password")
         confirm = cleaned_data.get("confirm_password")
+
         if password and confirm and password != confirm:
-            self.add_error('confirm_password', "Passwords do not match")
+            self.add_error(
+                'confirm_password',
+                "Passwords do not match"
+            )
+
         return cleaned_data
 
 

@@ -83,6 +83,88 @@ class AuthenticationAndRouteRegressionTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('password', form.errors)
 
+    def test_registration_rejects_duplicate_username(self):
+        form = RegisterForm(data={
+            'username': 'route-user',
+            'email': 'different@example.test',
+            'password': 'Strong-password-456!',
+            'confirm_password': 'Strong-password-456!',
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('username', form.errors)
+
+    def test_registration_rejects_duplicate_email(self):
+        form = RegisterForm(data={
+            'username': 'different-user',
+            'email': 'route@example.test',
+            'password': 'Strong-password-456!',
+            'confirm_password': 'Strong-password-456!',
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_registration_rejects_password_mismatch(self):
+        form = RegisterForm(data={
+            'username': 'new-register-user',
+            'email': 'new-register@example.test',
+            'password': 'Strong-password-456!',
+            'confirm_password': 'Different-password-456!',
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('confirm_password', form.errors)
+
+    def test_registration_normalizes_email(self):
+        form = RegisterForm(data={
+            'username': 'new-register-user',
+            'email': 'New-Register@Example.TEST',
+            'password': 'Strong-password-456!',
+            'confirm_password': 'Strong-password-456!',
+        })
+
+        self.assertTrue(form.is_valid())
+        self.assertEqual(
+            form.cleaned_data['email'],
+            'new-register@example.test'
+        )
+
+    def test_login_with_invalid_credentials_fails(self):
+        response = self.client.post(
+            reverse('login'),
+            {
+                'username': 'route-user',
+                'password': 'wrong-password',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+    def test_successful_registration_creates_hashed_password(self):
+        response = self.client.post(
+            reverse('register'),
+            {
+                'username': 'brand-new-user',
+                'email': 'brand-new@example.test',
+                'password': 'Strong-password-456!',
+                'confirm_password': 'Strong-password-456!',
+            },
+        )
+
+        self.assertRedirects(response, reverse('dashboard'))
+
+        user = User.objects.get(username='brand-new-user')
+
+        self.assertNotEqual(
+            user.password,
+            'Strong-password-456!'
+        )
+        self.assertTrue(
+            user.check_password('Strong-password-456!')
+        )
+
     def test_calendar_instructions_uses_existing_template(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse('calendar_instructions'))

@@ -8,6 +8,7 @@ from django.db import OperationalError, ProgrammingError
 from django.shortcuts import redirect
 
 from .models import UserRole
+from .permissions import user_has_role
 
 STUDENT = 'student'
 TEACHER = 'teacher'
@@ -55,16 +56,7 @@ def _usable_user(user):
 
 def has_role(user, role_code):
     """Return whether the user has an explicit active role assignment."""
-    if not _usable_user(user):
-        return False
-    try:
-        return UserRole.objects.filter(
-            profile__user_id=user.pk,
-            role__code=role_code,
-        ).exists()
-    except (OperationalError, ProgrammingError):
-        # Fail closed while a rolling deployment is between migrations.
-        return False
+    return user_has_role(user, role_code)
 
 
 def assigned_roles(user):

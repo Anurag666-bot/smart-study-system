@@ -57,6 +57,7 @@ from .models import (
     UserAchievement,
     UserRole,
 )
+from .permissions import is_admin, is_student, is_teacher, require_role
 from .policies import has_permission, permission_required
 from .forms import (
     AnnouncementForm,
@@ -1646,7 +1647,7 @@ def _set_teacher_attendance_scope(form, user, subject_id=None):
 
 @login_required
 def teacher_student_list(request):
-    if not has_permission(request.user, 'teacher.students.read'):
+    if not (is_teacher(request.user) or is_admin(request.user)):
         return redirect('dashboard')
     enrollments = StudentSubject.objects.filter(
         subject__in=_teacher_subjects(request.user),
@@ -1661,7 +1662,7 @@ def teacher_student_list(request):
 
 @login_required
 def teacher_progress_report(request):
-    if not has_permission(request.user, 'teacher.reports.view'):
+    if not (is_teacher(request.user) or is_admin(request.user)):
         return redirect('dashboard')
     subjects = list(_teacher_subjects(request.user)[:100])
     reports = []
@@ -1704,7 +1705,7 @@ def teacher_progress_report(request):
 
 @login_required
 def teacher_attendance(request):
-    if not has_permission(request.user, 'attendance.manage_any'):
+    if not (is_teacher(request.user) or is_admin(request.user)):
         return redirect('dashboard')
     subject_id = request.POST.get('subject') or request.GET.get('subject')
     form = TeacherAttendanceForm(request.POST or None, initial={
@@ -1804,6 +1805,8 @@ def subject_delete(request, subject_id):
 
 @login_required
 def enrollment_list(request):
+    if not require_role(request.user, 'student'):
+        return redirect('dashboard')
     if request.method == 'POST':
         form = EnrollmentForm(request.POST)
         form.fields['subject'].queryset = Subject.objects.filter(is_active=True)
@@ -1853,6 +1856,8 @@ def enrollment_delete(request, enrollment_id):
 
 @login_required
 def study_session_list(request):
+    if not require_role(request.user, 'student'):
+        return redirect('dashboard')
     if request.method == 'POST':
         form = StudySessionForm(request.POST)
         _set_subject_scope(form, request.user)
@@ -1883,6 +1888,8 @@ def study_session_delete(request, session_id):
 
 @login_required
 def goal_list(request):
+    if not require_role(request.user, 'student'):
+        return redirect('dashboard')
     if request.method == 'POST':
         form = GoalForm(request.POST)
         _set_subject_scope(form, request.user)
@@ -1950,6 +1957,8 @@ def goal_restore(request, goal_id):
 
 @login_required
 def exam_list(request):
+    if not (is_student(request.user) or is_teacher(request.user) or is_admin(request.user)):
+        return redirect('dashboard')
     subjects = _available_subjects(request.user)
     exams = Exam.objects.filter(
         subject__in=subjects,
@@ -1978,11 +1987,7 @@ def exam_list(request):
 
 @login_required
 def exam_create(request):
-    allowed = (
-        has_permission(request.user, 'student_progress.read')
-        or has_permission(request.user, 'admin.dashboard.view')
-    )
-    if not allowed:
+    if not (is_teacher(request.user) or is_admin(request.user)):
         messages.error(request, 'Only teachers and administrators can create exams.')
         return redirect('exam_list')
     if request.method == 'POST':
@@ -2061,7 +2066,7 @@ def exam_restore(request, exam_id):
 
 @login_required
 def teacher_exam_results(request, exam_id):
-    if not has_permission(request.user, 'student_progress.read'):
+    if not (is_teacher(request.user) or is_admin(request.user)):
         return redirect('dashboard')
     exam = get_object_or_404(
         Exam.objects.select_related('subject').filter(is_archived=False),
@@ -2093,7 +2098,7 @@ def teacher_exam_results(request, exam_id):
 
 @login_required
 def teacher_exam_result_edit(request, exam_id, student_id):
-    if not has_permission(request.user, 'exam_results.manage'):
+    if not (is_teacher(request.user) or is_admin(request.user)):
         return redirect('dashboard')
     exam = get_object_or_404(
         Exam.objects.select_related('subject').filter(is_archived=False),

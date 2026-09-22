@@ -57,11 +57,12 @@ def _workload_score(task: Any) -> int:
 
 
 def _status_score(status: Any) -> int:
-    if status == 'Completed':
+    normalized = str(status or '').strip()
+    if normalized in {'Completed', 'Cancelled'}:
         return 0
-    if status == 'In Progress':
+    if normalized == 'In Progress':
         return 15
-    if status == 'Pending':
+    if normalized == 'Pending':
         return 10
     return 5
 
@@ -102,6 +103,8 @@ def _build_reasons(task: Any, *, due_date: date | None, days_until_deadline: int
 
     if status == 'Completed':
         reasons.append('Task is already complete')
+    elif status == 'Cancelled':
+        reasons.append('Task was cancelled')
     else:
         reasons.append('Task is still pending')
 
@@ -158,19 +161,24 @@ def calculate_priority_score(task: Any, *, today: date | None = None) -> dict:
         'status_score': status_score,
     }
 
-    score = deadline_score + importance_score + workload_score + status_score
-    score = max(0, min(100, score))
+    reasons = _build_reasons(
+        task,
+        due_date=due_date,
+        days_until_deadline=days_until_deadline,
+        estimated_hours=estimated_hours,
+        importance=importance,
+        status=status,
+    )
+
+    if status in {'Completed', 'Cancelled'}:
+        score = 0
+    else:
+        score = deadline_score + importance_score + workload_score + status_score
+        score = max(0, min(100, score))
 
     return {
         'score': score,
         'level': _level_for_score(score),
         'factors': factors,
-        'reasons': _build_reasons(
-            task,
-            due_date=due_date,
-            days_until_deadline=days_until_deadline,
-            estimated_hours=estimated_hours,
-            importance=importance,
-            status=status,
-        ),
+        'reasons': reasons,
     }

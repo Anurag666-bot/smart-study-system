@@ -204,8 +204,8 @@ def build_adaptive_plan(
         daily_limit = int(daily_limit)
     except (TypeError, ValueError) as exc:
         raise ValueError('daily_limit must be an integer') from exc
-    if not 30 <= available_minutes_per_day <= daily_limit:
-        raise ValueError(f'available_minutes_per_day must be between 30 and {daily_limit}')
+    if not 0 <= available_minutes_per_day <= daily_limit:
+        raise ValueError(f'available_minutes_per_day must be between 0 and {daily_limit}')
 
     enrollments = list(
         StudentSubject.objects.filter(

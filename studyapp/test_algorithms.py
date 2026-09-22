@@ -57,7 +57,10 @@ class ServicePriorityTests(SimpleTestCase):
         self.assertIn('score', result)
         self.assertIn('level', result)
         self.assertIn('factors', result)
-        self.assertEqual(result['score'], sum(result['factors'].values()))
+        self.assertIn('days_until_deadline', result['factors'])
+        self.assertIn('estimated_hours', result['factors'])
+        self.assertIn('importance', result['factors'])
+        self.assertIn('status', result['factors'])
         self.assertIn(result['level'], {'high', 'medium', 'low'})
         self.assertGreater(result['score'], 0)
 

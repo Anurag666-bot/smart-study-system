@@ -10,6 +10,7 @@ from .algorithms.priority_scheduler import (
 )
 from .algorithms.textrank_summary import textrank_summary
 from .algorithms.tfidf_search import tfidf_search
+from .services.priority import calculate_priority_score as service_calculate_priority_score
 
 
 class PrioritySchedulerTests(SimpleTestCase):
@@ -37,6 +38,28 @@ class PrioritySchedulerTests(SimpleTestCase):
         self.assertEqual(ordered[:2], [overdue_low, future_high])
         self.assertEqual(explain_score(overdue_low, today)['reason_codes'][0], 'overdue')
         self.assertLessEqual(calculate_priority_score(overdue_low, today), 100)
+
+
+class ServicePriorityTests(SimpleTestCase):
+    def test_priority_service_returns_deterministic_explained_score(self):
+        today = date(2026, 9, 13)
+        task = SimpleNamespace(
+            title='Project defense prep',
+            priority='High',
+            status='In Progress',
+            due_date=today + timedelta(days=1),
+            estimated_minutes=180,
+            difficulty='Hard',
+        )
+
+        result = service_calculate_priority_score(task, today=today)
+
+        self.assertIn('score', result)
+        self.assertIn('level', result)
+        self.assertIn('factors', result)
+        self.assertEqual(result['score'], sum(result['factors'].values()))
+        self.assertIn(result['level'], {'high', 'medium', 'low'})
+        self.assertGreater(result['score'], 0)
 
 
 class SearchAndSummaryTests(SimpleTestCase):

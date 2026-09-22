@@ -147,6 +147,30 @@ def rate_limit(key_prefix, limit=5, period=60):
     return decorator
 
 
+def _is_admin_override(user):
+    return bool(
+        user is not None
+        and getattr(user, 'is_authenticated', False)
+        and (
+            getattr(user, 'is_superuser', False)
+            or has_permission(user, 'admin.dashboard.view')
+        )
+    )
+
+
+def _queryset_for_owner_access(model, user, include_deleted=False):
+    manager = getattr(model, 'all_objects', model.objects)
+    qs = manager.all() if include_deleted else manager.all()
+    if _is_admin_override(user):
+        return qs
+    return qs.filter(user=user)
+
+
+def _record_for_user(model, user, **filters):
+    base_qs = _queryset_for_owner_access(model, user)
+    return get_object_or_404(base_qs, **filters)
+
+
 # ============================================================
 # REGISTER FORM
 # ============================================================
@@ -494,13 +518,13 @@ def upload_note(request):
 
 @login_required
 def note_detail(request, note_id):
-    note = get_object_or_404(Note, id=note_id, user=request.user)
+    note = _record_for_user(Note, request.user, id=note_id)
     return render(request, 'notes/note_detail.html', {'note': note})
 
 
 @login_required
 def edit_note(request, note_id):
-    note = get_object_or_404(Note, id=note_id, user=request.user)
+    note = _record_for_user(Note, request.user, id=note_id)
     if request.method == 'POST':
         form = NoteEditForm(request.POST, instance=note)
         if form.is_valid():
@@ -522,15 +546,14 @@ def edit_note(request, note_id):
 
 @login_required
 def note_file(request, note_id):
-    """Serve an uploaded note file only to its owner or a superuser."""
+    """Serve an uploaded note file only to its owner or an authorized admin."""
     if request.method != 'GET':
         return HttpResponse(status=405)
 
-    # Deleted notes are not downloadable through the normal media route.
-    # This keeps trash access separate from active academic content.
-    note = get_object_or_404(Note.objects, id=note_id)
-    if note.user_id != request.user.id and not request.user.is_superuser:
-        return HttpResponse(status=404)
+    if _is_admin_override(request.user):
+        note = get_object_or_404(Note.objects, id=note_id)
+    else:
+        note = get_object_or_404(Note.objects, id=note_id, user=request.user)
     if not note.file:
         return HttpResponse(status=404)
 
@@ -585,7 +608,10 @@ def _attachment_response(attachment):
 
 @login_required
 def note_attachment_add(request, note_id):
-    note = get_object_or_404(Note.objects, pk=note_id, user=request.user)
+    if _is_admin_override(request.user):
+        note = get_object_or_404(Note.objects, pk=note_id)
+    else:
+        note = get_object_or_404(Note.objects, pk=note_id, user=request.user)
     if request.method == 'POST':
         form = AttachmentForm(request.POST, request.FILES)
         if form.is_valid():
@@ -613,12 +639,11 @@ def note_attachment_add(request, note_id):
 
 @login_required
 def note_attachment_file(request, attachment_id):
-    attachment = get_object_or_404(
-        NoteAttachment.objects.select_related('note'),
-        pk=attachment_id,
-        note__user=request.user,
-        note__is_deleted=False,
-    )
+    qs = NoteAttachment.objects.select_related('note')
+    if _is_admin_override(request.user):
+        attachment = get_object_or_404(qs, pk=attachment_id)
+    else:
+        attachment = get_object_or_404(qs, pk=attachment_id, note__user=request.user, note__is_deleted=False)
     if request.method != 'GET':
         return HttpResponse(status=405)
     return _attachment_response(attachment)
@@ -627,11 +652,11 @@ def note_attachment_file(request, attachment_id):
 @login_required
 @require_POST
 def note_attachment_delete(request, attachment_id):
-    attachment = get_object_or_404(
-        NoteAttachment.objects.select_related('note'),
-        pk=attachment_id,
-        note__user=request.user,
-    )
+    qs = NoteAttachment.objects.select_related('note')
+    if _is_admin_override(request.user):
+        attachment = get_object_or_404(qs, pk=attachment_id)
+    else:
+        attachment = get_object_or_404(qs, pk=attachment_id, note__user=request.user)
     note_id = attachment.note_id
     attachment.file.delete(save=False)
     attachment.delete()
@@ -694,7 +719,7 @@ def add_task(request):
 
 @login_required
 def edit_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id, user=request.user)
+    task = _record_for_user(Task, request.user, id=task_id)
     if request.method == 'POST':
         form = TaskForm(request.POST, instance=task)
         _set_subject_scope(form, request.user)
@@ -710,11 +735,14 @@ def edit_task(request, task_id):
 
 @login_required
 def task_detail(request, task_id):
-    task = get_object_or_404(
-        Task.objects.select_related('subject'),
-        pk=task_id,
-        user=request.user,
-    )
+    if _is_admin_override(request.user):
+        task = get_object_or_404(Task.objects.select_related('subject'), pk=task_id)
+    else:
+        task = get_object_or_404(
+            Task.objects.select_related('subject'),
+            pk=task_id,
+            user=request.user,
+        )
     if request.method == 'POST':
         form = TaskCommentForm(request.POST)
         if form.is_valid():
@@ -751,7 +779,10 @@ def task_comment_delete(request, comment_id):
 
 @login_required
 def task_attachment_add(request, task_id):
-    task = get_object_or_404(Task.objects, pk=task_id, user=request.user)
+    if _is_admin_override(request.user):
+        task = get_object_or_404(Task.objects, pk=task_id)
+    else:
+        task = get_object_or_404(Task.objects, pk=task_id, user=request.user)
     if request.method == 'POST':
         form = AttachmentForm(request.POST, request.FILES)
         if form.is_valid():
@@ -780,11 +811,11 @@ def task_attachment_add(request, task_id):
 
 @login_required
 def task_attachment_file(request, attachment_id):
-    attachment = get_object_or_404(
-        TaskAttachment.objects.select_related('task'),
-        pk=attachment_id,
-        task__user=request.user,
-    )
+    qs = TaskAttachment.objects.select_related('task')
+    if _is_admin_override(request.user):
+        attachment = get_object_or_404(qs, pk=attachment_id)
+    else:
+        attachment = get_object_or_404(qs, pk=attachment_id, task__user=request.user)
     if request.method != 'GET':
         return HttpResponse(status=405)
     return _attachment_response(attachment)
@@ -793,11 +824,11 @@ def task_attachment_file(request, attachment_id):
 @login_required
 @require_POST
 def task_attachment_delete(request, attachment_id):
-    attachment = get_object_or_404(
-        TaskAttachment.objects.select_related('task'),
-        pk=attachment_id,
-        task__user=request.user,
-    )
+    qs = TaskAttachment.objects.select_related('task')
+    if _is_admin_override(request.user):
+        attachment = get_object_or_404(qs, pk=attachment_id)
+    else:
+        attachment = get_object_or_404(qs, pk=attachment_id, task__user=request.user)
     task_id = attachment.task_id
     attachment.file.delete(save=False)
     attachment.delete()
@@ -836,7 +867,7 @@ def planner(request):
 
 @login_required
 def study_plan_edit(request, plan_id):
-    plan = get_object_or_404(StudyPlan, id=plan_id, user=request.user)
+    plan = _record_for_user(StudyPlan, request.user, id=plan_id)
     if request.method == 'POST':
         form = StudyPlanForm(request.POST, instance=plan)
         if form.is_valid():
@@ -855,11 +886,14 @@ def study_plan_edit(request, plan_id):
 
 @login_required
 def study_plan_delete(request, plan_id):
-    plan = get_object_or_404(
-        StudyPlan.objects.filter(is_deleted=False),
-        id=plan_id,
-        user=request.user,
-    )
+    if _is_admin_override(request.user):
+        plan = get_object_or_404(StudyPlan.objects.filter(is_deleted=False), id=plan_id)
+    else:
+        plan = get_object_or_404(
+            StudyPlan.objects.filter(is_deleted=False),
+            id=plan_id,
+            user=request.user,
+        )
     if request.method == 'POST':
         plan.is_deleted = True
         plan.deleted_at = timezone.now()
@@ -876,11 +910,14 @@ def study_plan_delete(request, plan_id):
 
 @login_required
 def study_plan_restore(request, plan_id):
-    plan = get_object_or_404(
-        StudyPlan.objects.filter(is_deleted=True),
-        id=plan_id,
-        user=request.user,
-    )
+    if _is_admin_override(request.user):
+        plan = get_object_or_404(StudyPlan.objects.filter(is_deleted=True), id=plan_id)
+    else:
+        plan = get_object_or_404(
+            StudyPlan.objects.filter(is_deleted=True),
+            id=plan_id,
+            user=request.user,
+        )
     if request.method == 'POST':
         plan.is_deleted = False
         plan.deleted_at = None
@@ -1880,7 +1917,10 @@ def study_session_list(request):
 @login_required
 @require_POST
 def study_session_delete(request, session_id):
-    session = get_object_or_404(StudySession, pk=session_id, user=request.user)
+    if _is_admin_override(request.user):
+        session = get_object_or_404(StudySession, pk=session_id)
+    else:
+        session = get_object_or_404(StudySession, pk=session_id, user=request.user)
     session.delete()
     messages.success(request, 'Study session deleted.')
     return redirect('study_session_list')
@@ -1919,7 +1959,10 @@ def goal_list(request):
 
 @login_required
 def goal_edit(request, goal_id):
-    goal = get_object_or_404(Goal, pk=goal_id, user=request.user)
+    if _is_admin_override(request.user):
+        goal = get_object_or_404(Goal, pk=goal_id)
+    else:
+        goal = get_object_or_404(Goal, pk=goal_id, user=request.user)
     if request.method == 'POST':
         form = GoalForm(request.POST, instance=goal)
         _set_subject_scope(form, request.user)
@@ -1936,7 +1979,10 @@ def goal_edit(request, goal_id):
 @login_required
 @require_POST
 def goal_delete(request, goal_id):
-    goal = get_object_or_404(Goal, pk=goal_id, user=request.user)
+    if _is_admin_override(request.user):
+        goal = get_object_or_404(Goal, pk=goal_id)
+    else:
+        goal = get_object_or_404(Goal, pk=goal_id, user=request.user)
     goal.status = 'ARCHIVED'
     goal.save(update_fields=['status', 'updated_at'])
     messages.success(request, 'Goal archived.')
@@ -1946,9 +1992,12 @@ def goal_delete(request, goal_id):
 @login_required
 @require_POST
 def goal_restore(request, goal_id):
-    goal = get_object_or_404(
-        Goal, pk=goal_id, user=request.user, status='ARCHIVED'
-    )
+    if _is_admin_override(request.user):
+        goal = get_object_or_404(Goal, pk=goal_id, status='ARCHIVED')
+    else:
+        goal = get_object_or_404(
+            Goal, pk=goal_id, user=request.user, status='ARCHIVED'
+        )
     goal.status = 'ACTIVE'
     goal.save(update_fields=['status', 'updated_at'])
     messages.success(request, 'Goal restored.')
@@ -2238,9 +2287,12 @@ def planner_event_list(request):
 
 @login_required
 def planner_event_edit(request, event_id):
-    event = get_object_or_404(
-        PlannerEvent, pk=event_id, user=request.user, is_deleted=False
-    )
+    if _is_admin_override(request.user):
+        event = get_object_or_404(PlannerEvent, pk=event_id, is_deleted=False)
+    else:
+        event = get_object_or_404(
+            PlannerEvent, pk=event_id, user=request.user, is_deleted=False
+        )
     if request.method == 'POST':
         form = PlannerEventForm(request.POST, instance=event)
         _set_subject_scope(form, request.user)
@@ -2257,12 +2309,15 @@ def planner_event_edit(request, event_id):
 @login_required
 @require_POST
 def planner_event_reminder_add(request, event_id):
-    event = get_object_or_404(
-        PlannerEvent,
-        pk=event_id,
-        user=request.user,
-        is_deleted=False,
-    )
+    if _is_admin_override(request.user):
+        event = get_object_or_404(PlannerEvent, pk=event_id, is_deleted=False)
+    else:
+        event = get_object_or_404(
+            PlannerEvent,
+            pk=event_id,
+            user=request.user,
+            is_deleted=False,
+        )
     form = EventReminderForm(request.POST)
     if form.is_valid():
         remind_at = form.cleaned_data['remind_at']
@@ -2295,11 +2350,11 @@ def planner_event_reminder_add(request, event_id):
 @login_required
 @require_POST
 def planner_event_reminder_delete(request, reminder_id):
-    reminder = get_object_or_404(
-        EventReminder.objects.select_related('event'),
-        pk=reminder_id,
-        event__user=request.user,
-    )
+    qs = EventReminder.objects.select_related('event')
+    if _is_admin_override(request.user):
+        reminder = get_object_or_404(qs, pk=reminder_id)
+    else:
+        reminder = get_object_or_404(qs, pk=reminder_id, event__user=request.user)
     reminder.delete()
     messages.success(request, 'Event reminder removed.')
     return redirect('planner_event_list')
@@ -2308,9 +2363,12 @@ def planner_event_reminder_delete(request, reminder_id):
 @login_required
 @require_POST
 def planner_event_delete(request, event_id):
-    event = get_object_or_404(
-        PlannerEvent, pk=event_id, user=request.user, is_deleted=False
-    )
+    if _is_admin_override(request.user):
+        event = get_object_or_404(PlannerEvent, pk=event_id, is_deleted=False)
+    else:
+        event = get_object_or_404(
+            PlannerEvent, pk=event_id, user=request.user, is_deleted=False
+        )
     event.is_deleted = True
     event.deleted_at = timezone.now()
     event.save(update_fields=['is_deleted', 'deleted_at', 'updated_at'])
@@ -2321,9 +2379,12 @@ def planner_event_delete(request, event_id):
 @login_required
 @require_POST
 def planner_event_restore(request, event_id):
-    event = get_object_or_404(
-        PlannerEvent, pk=event_id, user=request.user, is_deleted=True
-    )
+    if _is_admin_override(request.user):
+        event = get_object_or_404(PlannerEvent, pk=event_id, is_deleted=True)
+    else:
+        event = get_object_or_404(
+            PlannerEvent, pk=event_id, user=request.user, is_deleted=True
+        )
     event.is_deleted = False
     event.deleted_at = None
     event.save(update_fields=['is_deleted', 'deleted_at', 'updated_at'])

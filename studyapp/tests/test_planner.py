@@ -304,3 +304,68 @@ class PlannerAlgorithmTests(TestCase):
                     f"With {available_hours} hours available, "
                     f"scheduled {total_minutes} minutes exceeds limit of {expected_minutes}"
                 )
+
+    def test_explainable_recommendations_format(self):
+        """Test that recommendations include detailed, explainable reasons."""
+        # Create an exam within the 1-day window (tomorrow)
+        exam_date = self.today + timedelta(days=1)
+        exam = Exam.objects.create(
+            subject=self.math_subject,
+            title='Midterm Exam',
+            exam_date=exam_date,
+            max_score=100
+        )
+
+        # Create an exam result to show progress below target
+        from studyapp.models import ExamResult
+        ExamResult.objects.create(
+            exam=exam,
+            student=self.user,
+            score=55  # 55% - below target
+        )
+
+        # Create a task with estimated workload due in 2 days (so exam is more imminent)
+        self._create_task('Study for midterm', estimated_minutes=180, days_offset=2)  # 3 hours, due in 2 days
+
+        # Get recommendations
+        allocations = build_adaptive_plan(
+            self.user,
+            start_date=self.today,
+            days=1,
+            available_minutes_per_day=120  # 2 hours available
+        )
+
+        # Should have recommendations
+        self.assertGreater(len(allocations), 0)
+
+        # Check that the recommendation includes explainable reasons
+        recommendation = allocations[0]
+        self.assertIn('reasons', recommendation)
+        reasons = recommendation['reasons']
+
+        # Convert to string for easier checking
+        reasons_text = ' '.join(reasons).lower()
+
+        # Should mention the exam timing (should show "Exam in 1 day" or "Due tomorrow")
+        self.assertTrue(
+            'exam in' in reasons_text or 'days' in reasons_text or 'tomorrow' in reasons_text or 'due today' in reasons_text,
+            f"Should mention exam timing in reasons: {reasons}"
+        )
+
+        # Should mention progress
+        self.assertTrue(
+            'progress' in reasons_text or 'current progress' in reasons_text,
+            f"Should mention progress in reasons: {reasons}"
+        )
+
+        # Should mention workload
+        self.assertTrue(
+            'workload' in reasons_text or 'estimated' in reasons_text,
+            f"Should mention workload in reasons: {reasons}"
+        )
+
+        # Should mention available time
+        self.assertTrue(
+            'available' in reasons_text or 'hours available' in reasons_text,
+            f"Should mention available time in reasons: {reasons}"
+        )

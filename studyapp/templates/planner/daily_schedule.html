@@ -20,14 +20,30 @@
 
     {% if time_slots %}
     <div class="schedule-display">
-        <div class="time-blocks">
-            {% for slot in time_slots %}
-            <div class="time-block">
-                <div class="time">{{ slot.start }}–{{ slot.end }}</div>
-                <div class="subject">{{ slot.subject }}</div>
+        {% for slot in time_slots %}
+        <div class="recommendation-card">
+            <h3>Recommended: {{ slot.subject }}</h3>
+            <div class="time-info">
+                <strong>{{ slot.start }}–{{ slot.end }}</strong>
+                ({{ slot.minutes }} minutes)
             </div>
-            {% endfor %}
+            {% if slot.reasons %}
+            <div class="reasons-section">
+                <strong>Reason:</strong>
+                <ul class="reasons-list">
+                    {% for reason in slot.reasons %}
+                    <li>{{ reason }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if slot.priority > 0 %}
+            <div class="priority-badge">
+                Priority: {{ slot.priority }}
+            </div>
+            {% endif %}
         </div>
+        {% endfor %}
     </div>
 
     <div class="schedule-actions">

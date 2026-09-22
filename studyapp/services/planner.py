@@ -134,7 +134,7 @@ def _priority_weight(priority):
     return values.get(priority, 0.5)
 
 
-def _subject_score(stats, start_date):
+def _subject_score(stats, start_date, available_hours=None):
     urgency = max(
         _urgency(stats['task_dates'], start_date),
         _urgency(stats['exam_dates'], start_date),
@@ -149,21 +149,70 @@ def _subject_score(stats, start_date):
         2,
     )
     reasons = []
-    if any(due <= start_date for due in stats['task_dates'] + stats['exam_dates']):
-        reasons.append('deadline-or-exam-imminent')
-    elif urgency:
-        reasons.append('upcoming-deadline')
+
+    # Check for imminent deadlines/exams (due today or in the past)
+    imminent_dates = [due for due in stats['task_dates'] + stats['exam_dates'] if due <= start_date]
+    if imminent_dates:
+        days_overdue = max((start_date - due).days for due in imminent_dates)
+        if days_overdue > 0:
+            reasons.append(f'Past due by {days_overdue} day{"s" if days_overdue != 1 else ""}')
+        else:
+            reasons.append('Due today')
+
+    # Check for upcoming deadlines/exams
+    elif urgency > 0:
+        # Find the soonest upcoming deadline/exam
+        upcoming_dates = [due for due in stats['task_dates'] + stats['exam_dates'] if due > start_date]
+        if upcoming_dates:
+            days_until = min((due - start_date).days for due in upcoming_dates)
+            if days_until == 1:
+                reasons.append('Due tomorrow')
+            else:
+                reasons.append(f'Exam in {days_until} days')
+
+    # Check workload
     if priority_average >= 0.8:
-        reasons.append('high-priority-workload')
+        reasons.append('High priority workload')
     if stats['task_minutes'] >= 120:
-        reasons.append('heavy-workload')
-    if stats['exam_average'] is not None and stats['exam_average'] < 60:
-        reasons.append('weak-exam-performance')
-    elif stats['exam_average'] is None:
-        reasons.append('no-exam-history')
+        hours = stats['task_minutes'] // 60
+        minutes = stats['task_minutes'] % 60
+        if minutes > 0:
+            reasons.append(f'Estimated workload: {hours}h {minutes}m')
+        else:
+            reasons.append(f'Estimated workload: {hours} hours')
+
+    # Check exam performance
+    if stats['exam_average'] is not None:
+        if stats['exam_average'] < 60:
+            reasons.append(f'Current progress: {stats["exam_average"]:.0f}% (below target)')
+        elif stats['exam_average'] < 75:
+            reasons.append(f'Current progress: {stats["exam_average"]:.0f}% (needs improvement)')
+        else:
+            reasons.append(f'Current progress: {stats["exam_average"]:.0f}% (on track)')
+    else:
+        reasons.append('No exam history available')
+
+    # Check study time
     if stats['session_minutes'] < 60:
-        reasons.append('low-recent-study-time')
-    return score, reasons or ['balanced-practice']
+        reasons.append('Low recent study time')
+    elif stats['session_minutes'] >= 180:
+        hours = stats['session_minutes'] // 60
+        reasons.append(f'Good recent study time: {hours}h')
+
+    # Add available hours info if provided
+    if available_hours is not None and available_hours > 0:
+        hours = int(available_hours)
+        minutes = int((available_hours - hours) * 60)
+        if minutes > 0:
+            reasons.append(f'You have {hours}h {minutes}m available today')
+        else:
+            reasons.append(f'You have {hours} hours available today')
+
+    # Default reason if none added
+    if not reasons:
+        reasons.append('Balanced practice recommended')
+
+    return score, reasons
 
 
 def build_adaptive_plan(
@@ -282,7 +331,7 @@ def build_adaptive_plan(
         progress = subject_progress.get(subject_stats['subject'].pk, {})
         subject_stats['progress_score'] = progress.get('progress_score', 0.5)
         subject_stats['base_score'], subject_stats['reasons'] = _subject_score(
-            subject_stats, start_date
+            subject_stats, start_date, available_minutes_per_day / 60 if available_minutes_per_day else None
         )
 
     horizon_end = start_date + timedelta(days=days - 1)

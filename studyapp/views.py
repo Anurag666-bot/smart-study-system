@@ -1767,11 +1767,14 @@ def daily_schedule(request):
                     for i, suggestion in enumerate(suggestions[:len(periods)]):
                         if i < len(periods):
                             start_str, end_str = periods[i]
+                            # Store full suggestion data for detailed display
                             time_slots.append({
                                 'start': start_str,
                                 'end': end_str,
                                 'subject': suggestion['subject'].name,
-                                'minutes': suggestion['minutes']
+                                'minutes': suggestion['minutes'],
+                                'reasons': suggestion.get('reasons', []),
+                                'priority': suggestion.get('priority', 0)
                             })
                 # If no suggestions from adaptive planner, keep default slots
             except Exception:
@@ -1783,14 +1786,22 @@ def daily_schedule(request):
             schedule_marked_complete = True
             messages.success(request, 'Your study schedule for today has been marked as complete! Great job staying on track.')
 
-    # Format time slots for display
+    # Format time slots for display with detailed reasons
     formatted_slots = []
     for slot in time_slots:
+        # Build reasons display
+        reasons_display = []
+        if slot.get('reasons'):
+            reasons_display = [f"• {reason}" for reason in slot['reasons']]
+
         formatted_slots.append({
             'display': f"{slot['start']}–{slot['end']} → {slot['subject']}",
             'start': slot['start'],
             'end': slot['end'],
-            'subject': slot['subject']
+            'subject': slot['subject'],
+            'reasons': reasons_display,
+            'minutes': slot.get('minutes', 0),
+            'priority': slot.get('priority', 0)
         })
 
     return render(request, 'planner/daily_schedule.html', {

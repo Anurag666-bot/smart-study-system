@@ -128,19 +128,33 @@ def _urgency(dates, start_date):
     )
 
 
+def _priority_weight(priority):
+    values = {'High': 1.0, 'Medium': 0.65, 'Low': 0.3}
+    return values.get(priority, 0.5)
+
+
 def _subject_score(stats, start_date):
     urgency = max(
         _urgency(stats['task_dates'], start_date),
         _urgency(stats['exam_dates'], start_date),
     )
+    priority_average = stats['priority_weight'] / max(stats['task_count'], 1)
+    workload_factor = min(1.0, stats['task_minutes'] / 180)
     weakness = 1.0 - stats['exam_average'] / 100 if stats['exam_average'] is not None else 0.5
     under_studied = max(0.0, 1.0 - min(stats['session_minutes'] / 180, 1.0))
-    score = round((0.45 * urgency + 0.35 * weakness + 0.20 * under_studied) * 100, 2)
+    score = round(
+        (0.50 * urgency + 0.25 * priority_average + 0.15 * workload_factor + 0.10 * weakness + 0.05 * under_studied) * 100,
+        2,
+    )
     reasons = []
     if any(due <= start_date for due in stats['task_dates'] + stats['exam_dates']):
         reasons.append('deadline-or-exam-imminent')
     elif urgency:
         reasons.append('upcoming-deadline')
+    if priority_average >= 0.8:
+        reasons.append('high-priority-workload')
+    if stats['task_minutes'] >= 120:
+        reasons.append('heavy-workload')
     if stats['exam_average'] is not None and stats['exam_average'] < 60:
         reasons.append('weak-exam-performance')
     elif stats['exam_average'] is None:
@@ -209,6 +223,9 @@ def build_adaptive_plan(
             'session_minutes': 0,
             'exam_values': [],
             'exam_average': None,
+            'priority_weight': 0.0,
+            'task_minutes': 0,
+            'task_count': 0,
             'assignments': 0,
         }
         for subject_id, enrollment in ((e.subject_id, e) for e in enrollments)
@@ -221,6 +238,9 @@ def build_adaptive_plan(
     for task in tasks:
         if task.subject_id and task.due_date:
             stats[task.subject_id]['task_dates'].append(task.due_date)
+            stats[task.subject_id]['priority_weight'] += _priority_weight(getattr(task, 'priority', 'Medium'))
+            stats[task.subject_id]['task_minutes'] += int(task.estimated_minutes or 0)
+            stats[task.subject_id]['task_count'] += 1
 
     exams = list(
         Exam.objects.filter(
@@ -280,12 +300,13 @@ def build_adaptive_plan(
 
     candidates = list(stats.values())
     allocations = []
+    minimum_block = min(30, session_duration)
     for offset in range(days):
         plan_date = start_date + timedelta(days=offset)
         if plan_date in blocked_dates:
             continue
         remaining = available_minutes_per_day
-        while remaining >= session_duration and candidates:
+        while remaining >= minimum_block and candidates:
             chosen = max(
                 candidates,
                 key=lambda item: (

@@ -140,6 +140,43 @@ class ServiceTests(TestCase):
         self.assertLessEqual(by_day.get(self.today + timedelta(days=2), 0), 180)
         self.assertTrue(all(item['minutes'] <= 30 for item in plan))
 
+    def test_generate_study_plan_prioritizes_deadlines_and_workload(self):
+        urgent_subject = Subject.objects.create(code='MATH101', name='Mathematics')
+        calm_subject = Subject.objects.create(code='LIT101', name='Literature')
+        StudentSubject.objects.create(student=self.user, subject=urgent_subject)
+        StudentSubject.objects.create(student=self.user, subject=calm_subject)
+
+        Task.objects.create(
+            user=self.user,
+            subject=urgent_subject,
+            title='Mock exam revision',
+            due_date=self.today + timedelta(days=2),
+            priority='High',
+            estimated_minutes=120,
+            status='Pending',
+        )
+        Task.objects.create(
+            user=self.user,
+            subject=calm_subject,
+            title='Reading notes',
+            due_date=self.today + timedelta(days=15),
+            priority='Low',
+            estimated_minutes=30,
+            status='Pending',
+        )
+
+        plan = generate_study_plan(
+            self.user,
+            start_date=self.today,
+            end_date=self.today + timedelta(days=2),
+            available_hours=2,
+            session_duration=60,
+            daily_limit=120,
+        )
+
+        self.assertTrue(plan)
+        self.assertEqual(plan[0]['subject'].name, 'Mathematics')
+
     def test_attendance_summary_excludes_excused_and_handles_target_boundaries(self):
         records = [
             Attendance(user=self.user, date=self.today, status='PRESENT'),

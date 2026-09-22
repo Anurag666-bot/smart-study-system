@@ -10,6 +10,7 @@ from datetime import date, datetime, time, timedelta
 from django.utils import timezone
 
 from ..models import Exam, ExamResult, PlannerEvent, StudentSubject, StudySession, Task
+from .analytics import get_subject_progress
 
 
 MAX_DAYS = 14
@@ -142,8 +143,9 @@ def _subject_score(stats, start_date):
     workload_factor = min(1.0, stats['task_minutes'] / 180)
     weakness = 1.0 - stats['exam_average'] / 100 if stats['exam_average'] is not None else 0.5
     under_studied = max(0.0, 1.0 - min(stats['session_minutes'] / 180, 1.0))
+    progress_gap = stats.get('progress_score', 0.5)
     score = round(
-        (0.50 * urgency + 0.25 * priority_average + 0.15 * workload_factor + 0.10 * weakness + 0.05 * under_studied) * 100,
+        (0.40 * urgency + 0.20 * priority_average + 0.15 * workload_factor + 0.15 * weakness + 0.10 * progress_gap + 0.05 * under_studied) * 100,
         2,
     )
     reasons = []
@@ -271,9 +273,14 @@ def build_adaptive_plan(
         if session.subject_id:
             stats[session.subject_id]['session_minutes'] += _session_minutes(session)
 
+    subject_progress = {
+        item['subject_id']: item for item in get_subject_progress(user)
+    }
     for subject_stats in stats.values():
         values = subject_stats['exam_values']
         subject_stats['exam_average'] = round(sum(values) / len(values), 2) if values else None
+        progress = subject_progress.get(subject_stats['subject'].pk, {})
+        subject_stats['progress_score'] = progress.get('progress_score', 0.5)
         subject_stats['base_score'], subject_stats['reasons'] = _subject_score(
             subject_stats, start_date
         )

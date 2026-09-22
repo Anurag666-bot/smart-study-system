@@ -6,7 +6,7 @@ from datetime import timedelta
 from django.db import OperationalError
 from django.utils import timezone
 
-from ..models import Attendance, ExamResult, Goal, StudentSubject, StudySession, Task
+from ..models import Attendance, Exam, ExamResult, Goal, StudentSubject, StudySession, Task
 from .attendance import calculate_attendance
 
 
@@ -149,6 +149,44 @@ def _legacy_analytics(user, *, today, recent_days):
         'goal_progress': [],
         'window_days': recent_days,
     }
+
+
+def get_subject_progress(user, *, recent_days=RECENT_DAYS):
+    """Return per-subject progress signals for planning and prioritization."""
+    enrollments = StudentSubject.objects.filter(student=user, is_active=True).select_related('subject')
+    recent_window = timezone.now() - timedelta(days=max(1, recent_days))
+    progress = []
+
+    for enrollment in enrollments:
+        subject = enrollment.subject
+        exam_results = list(
+            ExamResult.objects.filter(
+                student=user,
+                exam__subject=subject,
+            ).select_related('exam')
+        )
+        exam_scores = [result.percentage for result in exam_results]
+        average_score = round(sum(exam_scores) / len(exam_scores), 2) if exam_scores else None
+        recent_minutes = sum(
+            _session_minutes(session)
+            for session in StudySession.objects.filter(
+                user=user,
+                subject=subject,
+                started_at__gte=recent_window,
+            )
+        )
+        progress_score = (
+            max(0.0, 100.0 - average_score) / 100.0 if average_score is not None else 0.5
+        )
+        progress.append({
+            'subject': subject.name,
+            'subject_id': subject.pk,
+            'average_score': average_score,
+            'progress_score': progress_score,
+            'recent_minutes': recent_minutes,
+        })
+
+    return sorted(progress, key=lambda item: (item['progress_score'], item['subject']))
 
 
 def get_student_analytics(user, *, today=None, now=None, recent_days=RECENT_DAYS):

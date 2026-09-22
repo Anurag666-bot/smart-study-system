@@ -177,6 +177,60 @@ class ServiceTests(TestCase):
         self.assertTrue(plan)
         self.assertEqual(plan[0]['subject'].name, 'Mathematics')
 
+    def test_generate_study_plan_prioritizes_weak_subject_progress(self):
+        weak_subject = Subject.objects.create(code='PHYS101', name='Physics')
+        strong_subject = Subject.objects.create(code='ART101', name='Art')
+        StudentSubject.objects.create(student=self.user, subject=weak_subject)
+        StudentSubject.objects.create(student=self.user, subject=strong_subject)
+
+        weak_exam = Exam.objects.create(
+            subject=weak_subject,
+            title='Physics midterm',
+            exam_date=self.today + timedelta(days=5),
+            max_score=Decimal('100'),
+            created_by=self.user,
+        )
+        strong_exam = Exam.objects.create(
+            subject=strong_subject,
+            title='Art portfolio review',
+            exam_date=self.today + timedelta(days=5),
+            max_score=Decimal('100'),
+            created_by=self.user,
+        )
+        ExamResult.objects.create(exam=weak_exam, student=self.user, score=Decimal('35'))
+        ExamResult.objects.create(exam=strong_exam, student=self.user, score=Decimal('92'))
+
+        Task.objects.create(
+            user=self.user,
+            subject=weak_subject,
+            title='Physics practice',
+            due_date=self.today + timedelta(days=4),
+            priority='High',
+            estimated_minutes=90,
+            status='Pending',
+        )
+        Task.objects.create(
+            user=self.user,
+            subject=strong_subject,
+            title='Art reflection',
+            due_date=self.today + timedelta(days=4),
+            priority='High',
+            estimated_minutes=90,
+            status='Pending',
+        )
+
+        plan = generate_study_plan(
+            self.user,
+            start_date=self.today,
+            end_date=self.today + timedelta(days=1),
+            available_hours=2,
+            session_duration=60,
+            daily_limit=120,
+        )
+
+        self.assertTrue(plan)
+        self.assertEqual(plan[0]['subject'].name, 'Physics')
+
     def test_attendance_summary_excludes_excused_and_handles_target_boundaries(self):
         records = [
             Attendance(user=self.user, date=self.today, status='PRESENT'),

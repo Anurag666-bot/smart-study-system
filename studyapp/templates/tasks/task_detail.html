@@ -6,6 +6,17 @@
     <p>{{ task.description|linebreaksbr }}</p>
     <p><strong>Status:</strong> {{ task.status }} · <strong>Priority:</strong> {{ task.priority }} · <strong>Progress:</strong> {{ task.progress }}%</p>
     <p><strong>Due:</strong> {{ task.due_date }}{% if task.subject %} · {{ task.subject.name }}{% endif %}</p>
+
+    <div class="priority-explanation">
+        <p><strong>Priority:</strong> {{ priority_summary.level|upper }} · <strong>Score:</strong> {{ priority_summary.score }}/100</p>
+        <p class="priority-explanation-title"><strong>Why?</strong></p>
+        <ul>
+            {% for reason in priority_summary.reasons %}
+                <li>{{ reason }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
     <a href="{% url 'edit_task' task.id %}" class="btn btn-outline">Edit task</a>
     <a href="{% url 'task_attachment_add' task.id %}" class="btn btn-outline">Add attachment</a>
     <a href="{% url 'task_list' %}" class="btn btn-outline">Back to tasks</a>

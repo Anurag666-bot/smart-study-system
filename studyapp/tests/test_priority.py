@@ -1,8 +1,11 @@
 from datetime import date, timedelta
 from types import SimpleNamespace
 
-from django.test import SimpleTestCase
+from django.contrib.auth import get_user_model
+from django.test import SimpleTestCase, TestCase
+from django.urls import reverse
 
+from studyapp.models import Task
 from studyapp.services.priority import calculate_priority_score
 
 
@@ -33,6 +36,9 @@ class PriorityScoringTests(SimpleTestCase):
         self.assertEqual(urgent_result['factors']['estimated_hours'], 5.0)
         self.assertEqual(urgent_result['factors']['importance'], 'High')
         self.assertEqual(urgent_result['factors']['status'], 'In Progress')
+        self.assertIn('Deadline is approaching', urgent_result['reasons'])
+        self.assertIn('Estimated workload is high', urgent_result['reasons'])
+        self.assertIn('Task is still pending', urgent_result['reasons'])
 
     def test_priority_engine_respects_importance_and_status(self):
         today = date(2026, 9, 13)
@@ -58,3 +64,26 @@ class PriorityScoringTests(SimpleTestCase):
         self.assertGreater(important_result['score'], minor_result['score'])
         self.assertNotEqual(important_result['factors']['importance'], minor_result['factors']['importance'])
         self.assertEqual(important_result['factors']['status'], 'Pending')
+        self.assertIn('High importance', important_result['reasons'])
+
+
+class PriorityViewTests(TestCase):
+    def test_task_detail_page_displays_explanation(self):
+        user = get_user_model().objects.create_user(username='priority-user', password='pass12345')
+        task = Task.objects.create(
+            user=user,
+            title='Lab report',
+            description='Draft the report before class.',
+            priority='High',
+            status='Pending',
+            due_date=date.today() + timedelta(days=1),
+            estimated_minutes=300,
+        )
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('task_detail', args=[task.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Priority:')
+        self.assertContains(response, 'Why?')
+        self.assertContains(response, 'Deadline is approaching')

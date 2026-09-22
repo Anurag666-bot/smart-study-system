@@ -146,6 +146,32 @@ header p {
     font-size: 0.9rem;
 }
 
+.priority-explanation {
+    margin: 1rem 0;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: #fffdf7;
+    box-shadow: 0 2px 0 rgba(27, 33, 48, 0.06);
+}
+
+.priority-explanation p {
+    margin: 0 0 0.5rem;
+}
+
+.priority-explanation-title {
+    margin: 0 0 0.75rem !important;
+}
+
+.priority-explanation ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.priority-explanation li {
+    margin: 0.15rem 0;
+}
+
 /* ===== DASHBOARD CARDS — sticky notes ===== */
 .dashboard-cards {
     display: grid;

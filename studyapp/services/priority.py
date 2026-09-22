@@ -74,6 +74,40 @@ def _level_for_score(score: int) -> str:
     return 'low'
 
 
+def _build_reasons(task: Any, *, due_date: date | None, days_until_deadline: int, estimated_hours: float, importance: str, status: str) -> list[str]:
+    reasons = []
+
+    if due_date is not None and days_until_deadline <= 2:
+        reasons.append('Deadline is approaching')
+    elif due_date is not None and days_until_deadline <= 7:
+        reasons.append('Deadline is coming soon')
+    elif due_date is None:
+        reasons.append('No deadline set')
+    else:
+        reasons.append('Deadline is not urgent')
+
+    if importance == 'High':
+        reasons.append('High importance')
+    elif importance == 'Medium':
+        reasons.append('Medium importance')
+    else:
+        reasons.append('Low importance')
+
+    if estimated_hours >= 4:
+        reasons.append('Estimated workload is high')
+    elif estimated_hours >= 2:
+        reasons.append('Estimated workload is moderate')
+    else:
+        reasons.append('Estimated workload is light')
+
+    if status == 'Completed':
+        reasons.append('Task is already complete')
+    else:
+        reasons.append('Task is still pending')
+
+    return reasons
+
+
 def calculate_priority_score(task: Any, *, today: date | None = None) -> dict:
     """Return a deterministic explanation object for a task's priority.
 
@@ -98,6 +132,7 @@ def calculate_priority_score(task: Any, *, today: date | None = None) -> dict:
                 'workload_score': 0,
                 'status_score': 0,
             },
+            'reasons': ['No task data available'],
         }
 
     due_date = _safe_get(task, 'due_date', None)
@@ -130,4 +165,12 @@ def calculate_priority_score(task: Any, *, today: date | None = None) -> dict:
         'score': score,
         'level': _level_for_score(score),
         'factors': factors,
+        'reasons': _build_reasons(
+            task,
+            due_date=due_date,
+            days_until_deadline=days_until_deadline,
+            estimated_hours=estimated_hours,
+            importance=importance,
+            status=status,
+        ),
     }

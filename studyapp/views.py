@@ -92,6 +92,7 @@ from .algorithms.priority_scheduler import prioritize_tasks
 from .services.analytics import get_student_analytics
 from .services.attendance import calculate_attendance
 from .services.planner import build_adaptive_plan
+from .services.priority import calculate_priority_score
 
 
 # ============================================================
@@ -755,10 +756,12 @@ def task_detail(request, task_id):
     else:
         form = TaskCommentForm()
     comments = task.comments.select_related('author').all()
+    priority_summary = calculate_priority_score(task, today=timezone.localdate())
     return render(request, 'tasks/task_detail.html', {
         'task': task,
         'comments': comments,
         'form': form,
+        'priority_summary': priority_summary,
     })
 
 

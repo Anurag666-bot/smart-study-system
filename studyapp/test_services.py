@@ -20,7 +20,7 @@ from .services.achievements import evaluate_user_achievements
 from .services.analytics import get_student_analytics
 from .services.attendance import calculate_attendance
 from .services.notifications import generate_user_notifications
-from .services.planner import build_adaptive_plan
+from .services.planner import build_adaptive_plan, generate_study_plan
 
 
 class ServiceTests(TestCase):
@@ -80,6 +80,30 @@ class ServiceTests(TestCase):
         self.assertEqual(data['task_completion_percent'], 50.0)
         self.assertEqual(data['attendance_percent_recent'], 50.0)
         self.assertEqual(data['subject_performance'][0]['exam_average'], 80.0)
+
+    def test_generate_study_plan_returns_suggestions_for_requested_window(self):
+        self.subject = Subject.objects.create(code='BIO101', name='Biology')
+        StudentSubject.objects.create(student=self.user, subject=self.subject)
+        Task.objects.create(
+            user=self.user,
+            subject=self.subject,
+            title='Revise cells',
+            due_date=self.today + timedelta(days=1),
+            status='Pending',
+        )
+
+        plan = generate_study_plan(
+            self.user,
+            start_date=self.today,
+            end_date=self.today + timedelta(days=2),
+            available_hours=3,
+        )
+
+        self.assertTrue(plan)
+        self.assertTrue(all('date' in item for item in plan))
+        self.assertTrue(all('subject' in item for item in plan))
+        self.assertTrue(all('minutes' in item for item in plan))
+        self.assertLessEqual(sum(item['minutes'] for item in plan), 180)
 
     def test_attendance_summary_excludes_excused_and_handles_target_boundaries(self):
         records = [

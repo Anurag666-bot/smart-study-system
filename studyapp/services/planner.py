@@ -17,6 +17,46 @@ MAX_SUBJECTS = 100
 MAX_ROWS_PER_KIND = 500
 
 
+def generate_study_plan(user, start_date, end_date, available_hours, *, now=None):
+    """Generate a bounded sequence of study-session suggestions for a date window.
+
+    This public API is the service-level contract expected by the app during the
+    planner milestone. It reuses the adaptive planner's logic and converts the
+    requested total available hours into a per-day allocation across the date
+    window.
+    """
+    if start_date is None or end_date is None:
+        raise ValueError('start_date and end_date are required')
+    if not isinstance(start_date, date) or not isinstance(end_date, date):
+        raise ValueError('start_date and end_date must be date objects')
+    if start_date > end_date:
+        raise ValueError('start_date must be on or before end_date')
+
+    try:
+        available_hours = float(available_hours)
+    except (TypeError, ValueError) as exc:
+        raise ValueError('available_hours must be numeric') from exc
+    if available_hours <= 0:
+        raise ValueError('available_hours must be greater than zero')
+
+    day_count = (end_date - start_date).days + 1
+    total_minutes = max(0, int(round(available_hours * 60)))
+    if total_minutes == 0:
+        return []
+
+    per_day_minutes = max(30, int(round(total_minutes / day_count)))
+    if per_day_minutes > 720:
+        per_day_minutes = 720
+
+    return build_adaptive_plan(
+        user,
+        start_date=start_date,
+        days=day_count,
+        available_minutes_per_day=per_day_minutes,
+        now=now,
+    )
+
+
 def _session_minutes(session):
     if session.duration_minutes:
         return int(session.duration_minutes)

@@ -9,6 +9,7 @@
     <div class="add-plan">
         <h3>Add Study Plan</h3>
         <p><a href="{% url 'adaptive_planner' %}" class="btn btn-outline">Build adaptive plan</a></p>
+        <p><a href="{% url 'daily_schedule' %}" class="btn btn-primary">Generate My Study Plan</a></p>
         <form method="POST" class="form">
             {% csrf_token %}
             {{ form.as_p }}

@@ -54,6 +54,7 @@ urlpatterns = [
     # Planner
     path('planner/', views.planner, name='planner'),
     path('planner/adaptive/', views.adaptive_planner, name='adaptive_planner'),
+    path('planner/daily-schedule/', views.daily_schedule, name='daily_schedule'),
     path('planner/<int:plan_id>/edit/', views.study_plan_edit, name='study_plan_edit'),
     path('planner/<int:plan_id>/delete/', views.study_plan_delete, name='study_plan_delete'),
     path('planner/<int:plan_id>/restore/', views.study_plan_restore, name='study_plan_restore'),

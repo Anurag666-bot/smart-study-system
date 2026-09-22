@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Generate My Study Plan{% endblock %}
+{% block header %}📅 Generate My Study Plan{% endblock %}
+
+{% block content %}
+<div class="planner-container">
+    <div class="schedule-header">
+        <h2>Your Personalized Study Schedule</h2>
+        <p>For {{ today|date:"l, F d, Y" }}</p>
+    </div>
+
+    {% if schedule_marked_complete %}
+    <div class="success-message">
+        <div class="success-icon">✅</div>
+        <p>Your study schedule for today has been marked as complete! Great job staying on track.</p>
+    </div>
+    {% endif %}
+
+    {% if time_slots %}
+    <div class="schedule-display">
+        <div class="time-blocks">
+            {% for slot in time_slots %}
+            <div class="time-block">
+                <div class="time">{{ slot.start }}–{{ slot.end }}</div>
+                <div class="subject">{{ slot.subject }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="schedule-actions">
+        <form method="post" class="form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="accept">
+            <button type="submit" class="btn btn-success">Accept</button>
+            <button type="submit" name="action" value="regenerate" class="btn btn-outline">Regenerate</button>
+            <button type="submit" name="action" value="mark_complete" class="btn btn-outline">Mark Complete</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <h3>No schedule available</h3>
+        <p>Unable to generate a study schedule at this time. Please try again later.</p>
+        <a href="{% url 'planner' %}" class="btn btn-outline">Back to planner</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/planner.js' %}"></script>
+{% endblock %}

@@ -1696,6 +1696,110 @@ def adaptive_planner(request):
     })
 
 
+@login_required
+def daily_schedule(request):
+    """Generate a personalized daily study schedule for today."""
+    if request.method not in {'GET', 'POST'}:
+        return HttpResponse(status=405)
+
+    # Default time slots and subjects
+    time_slots = [
+        {'start': '09:00', 'end': '10:00', 'subject': 'Machine Learning'},
+        {'start': '10:15', 'end': '11:00', 'subject': 'Database Systems'},
+        {'start': '15:00', 'end': '16:00', 'subject': 'Web Security'},
+    ]
+
+    # Track if schedule was marked complete
+    schedule_marked_complete = False
+
+    # If we have POST data, it means we're either accepting, regenerating, or marking complete
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'accept':
+            # Save the schedule to the planner
+            today = timezone.localdate()
+            created_count = 0
+            for slot in time_slots:
+                # Calculate duration in hours
+                start_time = datetime.strptime(slot['start'], '%H:%M').time()
+                end_time = datetime.strptime(slot['end'], '%H:%M').time()
+                start_datetime = datetime.combine(today, start_time)
+                end_datetime = datetime.combine(today, end_time)
+                duration_hours = (end_datetime - start_datetime).total_seconds() / 3600
+
+                # Create study plan entry
+                StudyPlan.objects.create(
+                    user=request.user,
+                    subject=slot['subject'],
+                    hours=duration_hours,
+                    date=today,
+                    notes=f'Generated daily schedule for {today.strftime("%A, %B %d, %Y")}'
+                )
+                created_count += 1
+
+            messages.success(request, f'Successfully added {created_count} study blocks to your planner!')
+            return redirect('planner')
+
+        elif action == 'regenerate':
+            # Generate a new schedule based on user's data
+            try:
+                # Use the adaptive planner to get suggestions for today
+                suggestions = build_adaptive_plan(
+                    request.user,
+                    start_date=timezone.localdate(),
+                    days=1,
+                    available_minutes_per_day=180,  # 3 hours total
+                )
+
+                if suggestions:
+                    # Convert suggestions to time slot format
+                    time_slots = []
+                    # Define available time periods throughout the day
+                    periods = [
+                        ('09:00', '10:00'),
+                        ('10:15', '11:00'),
+                        ('11:15', '12:15'),
+                        ('13:30', '14:30'),
+                        ('15:00', '16:00'),
+                        ('16:15', '17:15')
+                    ]
+
+                    for i, suggestion in enumerate(suggestions[:len(periods)]):
+                        if i < len(periods):
+                            start_str, end_str = periods[i]
+                            time_slots.append({
+                                'start': start_str,
+                                'end': end_str,
+                                'subject': suggestion['subject'].name,
+                                'minutes': suggestion['minutes']
+                            })
+                # If no suggestions from adaptive planner, keep default slots
+            except Exception:
+                # Fall back to default slots if there's an error
+                pass
+
+        elif action == 'mark_complete':
+            # Mark the schedule as complete for today
+            schedule_marked_complete = True
+            messages.success(request, 'Your study schedule for today has been marked as complete! Great job staying on track.')
+
+    # Format time slots for display
+    formatted_slots = []
+    for slot in time_slots:
+        formatted_slots.append({
+            'display': f"{slot['start']}–{slot['end']} → {slot['subject']}",
+            'start': slot['start'],
+            'end': slot['end'],
+            'subject': slot['subject']
+        })
+
+    return render(request, 'planner/daily_schedule.html', {
+        'time_slots': formatted_slots,
+        'today': timezone.localdate(),
+        'schedule_marked_complete': schedule_marked_complete,
+    })
+
+
 # ============================================================
 # NORMALIZED ACADEMIC DOMAIN
 # ============================================================

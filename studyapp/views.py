@@ -94,6 +94,7 @@ from .services.analytics import get_student_analytics
 from .services.attendance import calculate_attendance
 from .services.planner import build_adaptive_plan
 from .services.priority import calculate_priority_score
+from .services.task_status import task_status_summary
 
 
 # ============================================================
@@ -752,6 +753,10 @@ def task_list(request):
     tasks = list(queryset)
     if not request.GET.get('sort'):
         tasks = prioritize_tasks(tasks, today=today)
+
+    for task in tasks:
+        task.task_status = task_status_summary(task, today=today)
+
     return render(request, 'tasks/task_list.html', {
         'tasks': tasks,
         'today': today,

@@ -82,12 +82,12 @@
                         <span class="priority-badge priority-{{ task.priority|lower }}">
                             {{ task.priority }}
                         </span>
-                        <span class="status-badge status-{{ task.status|lower|cut:' ' }}">
-                            {{ task.status }}
+                        <span class="status-badge {{ task.task_status.css_class }}">
+                            {{ task.task_status.label }}
                         </span>
-                        <span class="due-date {% if task.due_date < today %}overdue{% endif %}">
+                        <span class="due-date {% if task.task_status.status == 'overdue' %}overdue{% endif %}">
                             📅 {{ task.due_date }}
-                            {% if task.due_date < today %}
+                            {% if task.task_status.status == 'overdue' %}
                                 <span class="overdue-label">(Overdue)</span>
                             {% endif %}
                         </span>
@@ -321,15 +321,27 @@
     letter-spacing: 0.3px;
 }
 
-.status-badge.status-pending {
+.task-status-overdue {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.task-status-due-today {
     background: #fef3c7;
     color: #92400e;
 }
-.status-badge.status-inprogress {
+
+.task-status-due-tomorrow {
     background: #dbeafe;
     color: #1e40af;
 }
-.status-badge.status-completed {
+
+.task-status-upcoming {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.task-status-completed {
     background: #d1fae5;
     color: #065f46;
 }

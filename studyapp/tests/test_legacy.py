@@ -8,8 +8,8 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 
-from .forms import AttendanceForm, StudyPlanForm
-from .models import (
+from studyapp.forms import AttendanceForm, StudyPlanForm
+from studyapp.models import (
     ActivityLog,
     Attendance,
     Note,
@@ -20,8 +20,8 @@ from .models import (
     Task,
     UserRole,
 )
-from .policies import has_permission, has_role
-from .views import RegisterForm
+from studyapp.policies import has_permission, has_role
+from studyapp.views import RegisterForm
 
 
 class NoteModelTest(TestCase):

@@ -22,6 +22,41 @@
         <a href="{% url 'add_task' %}" class="btn btn-primary">+ Add New Task</a>
     </div>
 
+    <div class="filter-panel">
+        <form method="get" class="filter-form" id="filter-form">
+            <div class="filter-grid">
+                <div class="field-group">
+                    {{ form.status.label_tag }}
+                    {{ form.status }}
+                </div>
+                <div class="field-group">
+                    {{ form.priority.label_tag }}
+                    {{ form.priority }}
+                </div>
+                <div class="field-group">
+                    {{ form.subject.label_tag }}
+                    {{ form.subject }}
+                </div>
+                <div class="field-group">
+                    {{ form.deadline.label_tag }}
+                    {{ form.deadline }}
+                </div>
+                <div class="field-group">
+                    {{ form.importance.label_tag }}
+                    {{ form.importance }}
+                </div>
+                <div class="field-group">
+                    {{ form.sort.label_tag }}
+                    {{ form.sort }}
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Apply filters</button>
+                <a href="{% url 'task_list' %}" class="btn btn-outline">Clear</a>
+            </div>
+        </form>
+    </div>
+
     <!-- Task Cards -->
     {% if tasks %}
         <div class="task-grid">
@@ -79,6 +114,45 @@
 .tasks-container {
     max-width: 900px;
     margin: 0 auto;
+}
+
+.filter-panel {
+    background: white;
+    border: 1px solid #e9eef3;
+    border-radius: 20px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.field-group select {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    background: white;
+    color: #0f172a;
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
 }
 
 /* ===== Header ===== */

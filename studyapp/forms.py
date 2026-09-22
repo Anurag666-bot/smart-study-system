@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
+from django.db.models import Q
 
 from .models import (
     Attendance,
@@ -56,6 +57,39 @@ class TaskForm(forms.ModelForm):
             'difficulty', 'estimated_minutes', 'progress',
         ]
         widgets = {'due_date': forms.DateInput(attrs={'type': 'date'})}
+
+
+class TaskFilterForm(forms.Form):
+    STATUS_CHOICES = [('','All statuses')] + list(Task.STATUS_CHOICES)
+    PRIORITY_CHOICES = [('','All priorities')] + list(Task.PRIORITY_CHOICES)
+    DEADLINE_CHOICES = [
+        ('', 'Any deadline'),
+        ('overdue', 'Overdue'),
+        ('due_soon', 'Due soon'),
+        ('upcoming', 'Upcoming'),
+        ('no_deadline', 'No deadline'),
+    ]
+    SORT_CHOICES = [
+        ('', 'Default ordering'),
+        ('priority', 'Priority'),
+        ('deadline', 'Deadline'),
+        ('created', 'Created date'),
+        ('workload', 'Estimated workload'),
+    ]
+
+    status = forms.ChoiceField(required=False, choices=STATUS_CHOICES)
+    priority = forms.ChoiceField(required=False, choices=PRIORITY_CHOICES)
+    importance = forms.ChoiceField(required=False, choices=PRIORITY_CHOICES)
+    subject = forms.ModelChoiceField(required=False, queryset=Subject.objects.none(), label='Subject')
+    deadline = forms.ChoiceField(required=False, choices=DEADLINE_CHOICES)
+    sort = forms.ChoiceField(required=False, choices=SORT_CHOICES)
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields['subject'].queryset = Subject.objects.filter(
+                Q(tasks__user=user) | Q(student_enrollments__student=user) | Q(teacher_assignments__teacher=user)
+            ).distinct().order_by('name')
 
 
 class StudyPlanForm(forms.ModelForm):

@@ -20,7 +20,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, OperationalError, transaction
-from django.db.models import Q
+from django.db.models import Case, IntegerField, Q, When
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -78,6 +78,7 @@ from .forms import (
     StudySessionForm,
     SubjectForm,
     SystemSettingForm,
+    TaskFilterForm,
     TaskForm,
     TaskCommentForm,
     TeacherAssignmentForm,
@@ -692,12 +693,69 @@ def search_notes(request):
 
 @login_required
 def task_list(request):
-    tasks = Task.objects.filter(user=request.user).select_related('subject').order_by('due_date')
     today = timezone.localdate()
-    prioritized = prioritize_tasks(tasks, today=today)
+    queryset = Task.objects.filter(user=request.user).select_related('subject')
+    form = TaskFilterForm(request.GET or None, user=request.user)
+
+    if form.is_valid():
+        status = form.cleaned_data.get('status')
+        priority = form.cleaned_data.get('priority')
+        importance = form.cleaned_data.get('importance')
+        subject = form.cleaned_data.get('subject')
+        deadline = form.cleaned_data.get('deadline')
+        sort = form.cleaned_data.get('sort')
+
+        if status:
+            queryset = queryset.filter(status=status)
+        if priority:
+            queryset = queryset.filter(priority=priority)
+        elif importance:
+            queryset = queryset.filter(priority=importance)
+        if subject:
+            queryset = queryset.filter(subject=subject)
+
+        if deadline == 'overdue':
+            queryset = queryset.filter(due_date__lt=today)
+        elif deadline == 'due_soon':
+            queryset = queryset.filter(due_date__gte=today, due_date__lte=today + timedelta(days=7))
+        elif deadline == 'upcoming':
+            queryset = queryset.filter(due_date__gt=today + timedelta(days=7))
+        elif deadline == 'no_deadline':
+            queryset = queryset.filter(due_date__isnull=True)
+
+        if sort == 'priority':
+            queryset = queryset.order_by(
+                Case(
+                    When(priority='High', then=0),
+                    When(priority='Medium', then=1),
+                    When(priority='Low', then=2),
+                    default=3,
+                    output_field=IntegerField(),
+                ),
+                'due_date',
+                '-created_at',
+            )
+        elif sort == 'deadline':
+            queryset = queryset.order_by('due_date', '-created_at')
+        elif sort == 'created':
+            queryset = queryset.order_by('-created_at')
+        elif sort == 'workload':
+            queryset = queryset.order_by('-estimated_minutes', 'due_date')
+        else:
+            tasks = prioritize_tasks(list(queryset), today=today)
+            return render(request, 'tasks/task_list.html', {
+                'tasks': tasks,
+                'today': today,
+                'form': form,
+            })
+
+    tasks = list(queryset)
+    if not request.GET.get('sort'):
+        tasks = prioritize_tasks(tasks, today=today)
     return render(request, 'tasks/task_list.html', {
-        'tasks': prioritized,
+        'tasks': tasks,
         'today': today,
+        'form': form,
     })
 
 

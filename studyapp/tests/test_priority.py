@@ -172,3 +172,41 @@ class PriorityViewTests(TestCase):
         self.assertContains(response, 'Priority:')
         self.assertContains(response, 'Why?')
         self.assertContains(response, 'Deadline is approaching')
+
+    def test_task_list_supports_filtering_and_sorting(self):
+        user = get_user_model().objects.create_user(username='filter-user', password='pass12345')
+        subject = Task._meta.get_field('subject').related_model.objects.create(code='MATH101', name='Mathematics')
+
+        urgent = Task.objects.create(
+            user=user,
+            subject=subject,
+            title='Urgent math task',
+            priority='High',
+            status='Pending',
+            due_date=date.today() + timedelta(days=1),
+            estimated_minutes=180,
+        )
+        quiet = Task.objects.create(
+            user=user,
+            subject=subject,
+            title='Quiet task',
+            priority='Low',
+            status='Completed',
+            due_date=date.today() + timedelta(days=30),
+            estimated_minutes=30,
+        )
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('task_list'), {
+            'status': 'Pending',
+            'priority': 'High',
+            'subject': str(subject.pk),
+            'importance': 'High',
+            'deadline': 'due_soon',
+            'sort': 'priority',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Urgent math task')
+        self.assertNotContains(response, 'Quiet task')
+        self.assertIn('filter-form', response.content.decode())

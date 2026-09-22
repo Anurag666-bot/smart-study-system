@@ -17,13 +17,21 @@ MAX_SUBJECTS = 100
 MAX_ROWS_PER_KIND = 500
 
 
-def generate_study_plan(user, start_date, end_date, available_hours, *, now=None):
-    """Generate a bounded sequence of study-session suggestions for a date window.
+def generate_study_plan(
+    user,
+    start_date,
+    end_date,
+    available_hours,
+    *,
+    now=None,
+    session_duration=60,
+    daily_limit=180,
+):
+    """Generate study-session suggestions for a date window while honoring time caps.
 
-    This public API is the service-level contract expected by the app during the
-    planner milestone. It reuses the adaptive planner's logic and converts the
-    requested total available hours into a per-day allocation across the date
-    window.
+    ``available_hours`` may be either a single numeric value for the whole window or
+    a mapping of specific dates to available hours. Each day is limited by both the
+    day-specific budget and the global ``daily_limit``.
     """
     if start_date is None or end_date is None:
         raise ValueError('start_date and end_date are required')
@@ -33,28 +41,74 @@ def generate_study_plan(user, start_date, end_date, available_hours, *, now=None
         raise ValueError('start_date must be on or before end_date')
 
     try:
-        available_hours = float(available_hours)
+        session_duration = int(session_duration)
     except (TypeError, ValueError) as exc:
-        raise ValueError('available_hours must be numeric') from exc
-    if available_hours <= 0:
-        raise ValueError('available_hours must be greater than zero')
+        raise ValueError('session_duration must be an integer') from exc
+    if session_duration <= 0:
+        raise ValueError('session_duration must be greater than zero')
 
-    day_count = (end_date - start_date).days + 1
-    total_minutes = max(0, int(round(available_hours * 60)))
-    if total_minutes == 0:
-        return []
+    try:
+        daily_limit = int(daily_limit)
+    except (TypeError, ValueError) as exc:
+        raise ValueError('daily_limit must be an integer') from exc
+    if daily_limit <= 0:
+        raise ValueError('daily_limit must be greater than zero')
 
-    per_day_minutes = max(30, int(round(total_minutes / day_count)))
-    if per_day_minutes > 720:
-        per_day_minutes = 720
+    day_range = [start_date + timedelta(days=offset) for offset in range((end_date - start_date).days + 1)]
+    if isinstance(available_hours, dict):
+        normalized = {}
+        for day_key, hours in available_hours.items():
+            if isinstance(day_key, datetime):
+                day_key = day_key.date()
+            if not isinstance(day_key, date):
+                raise ValueError('available_hours keys must be date values')
+            try:
+                hours_value = float(hours)
+            except (TypeError, ValueError) as exc:
+                raise ValueError('available_hours values must be numeric') from exc
+            if hours_value < 0:
+                raise ValueError('available_hours values must be non-negative')
+            normalized[day_key] = hours_value
+        for day in day_range:
+            normalized.setdefault(day, 0.0)
+    else:
+        try:
+            total_hours = float(available_hours)
+        except (TypeError, ValueError) as exc:
+            raise ValueError('available_hours must be numeric or a date-to-hour mapping') from exc
+        if total_hours < 0:
+            raise ValueError('available_hours must be non-negative')
+        total_minutes = int(round(total_hours * 60))
+        day_count = len(day_range) or 1
+        per_day = max(0, int(round(total_minutes / day_count)))
+        normalized = {day: max(0, per_day / 60) for day in day_range}
 
-    return build_adaptive_plan(
-        user,
-        start_date=start_date,
-        days=day_count,
-        available_minutes_per_day=per_day_minutes,
-        now=now,
-    )
+    suggestions = []
+    for day in day_range:
+        available_minutes = min(
+            max(0, int(round(normalized.get(day, 0.0) * 60))),
+            daily_limit,
+        )
+        if available_minutes <= 0:
+            continue
+        day_suggestions = build_adaptive_plan(
+            user,
+            start_date=day,
+            days=1,
+            available_minutes_per_day=available_minutes,
+            now=now,
+            session_duration=session_duration,
+            daily_limit=daily_limit,
+        )
+        for item in day_suggestions:
+            minutes = int(item['minutes'])
+            if minutes > session_duration:
+                minutes = session_duration
+            item['minutes'] = minutes
+            item['date'] = day
+            suggestions.append(item)
+
+    return suggestions
 
 
 def _session_minutes(session):
@@ -103,6 +157,8 @@ def build_adaptive_plan(
     days=7,
     available_minutes_per_day=120,
     now=None,
+    session_duration=60,
+    daily_limit=None,
 ):
     """Return explainable daily allocations without mutating database rows.
 
@@ -119,12 +175,21 @@ def build_adaptive_plan(
     try:
         days = int(days)
         available_minutes_per_day = int(available_minutes_per_day)
+        session_duration = int(session_duration)
     except (TypeError, ValueError) as exc:
-        raise ValueError('days and available_minutes_per_day must be integers') from exc
+        raise ValueError('days, available_minutes_per_day, and session_duration must be integers') from exc
     if not 1 <= days <= MAX_DAYS:
         raise ValueError(f'days must be between 1 and {MAX_DAYS}')
-    if not 30 <= available_minutes_per_day <= 720:
-        raise ValueError('available_minutes_per_day must be between 30 and 720')
+    if session_duration <= 0:
+        raise ValueError('session_duration must be greater than zero')
+    if daily_limit is None:
+        daily_limit = 720
+    try:
+        daily_limit = int(daily_limit)
+    except (TypeError, ValueError) as exc:
+        raise ValueError('daily_limit must be an integer') from exc
+    if not 30 <= available_minutes_per_day <= daily_limit:
+        raise ValueError(f'available_minutes_per_day must be between 30 and {daily_limit}')
 
     enrollments = list(
         StudentSubject.objects.filter(
@@ -220,7 +285,7 @@ def build_adaptive_plan(
         if plan_date in blocked_dates:
             continue
         remaining = available_minutes_per_day
-        while remaining >= 30 and candidates:
+        while remaining >= session_duration and candidates:
             chosen = max(
                 candidates,
                 key=lambda item: (
@@ -230,7 +295,7 @@ def build_adaptive_plan(
                     item['subject'].name,
                 ),
             )
-            minutes = min(60, remaining)
+            minutes = min(session_duration, remaining)
             chosen['assignments'] += 1
             allocations.append({
                 'date': plan_date,

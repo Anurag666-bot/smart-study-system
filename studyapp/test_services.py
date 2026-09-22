@@ -105,6 +105,41 @@ class ServiceTests(TestCase):
         self.assertTrue(all('minutes' in item for item in plan))
         self.assertLessEqual(sum(item['minutes'] for item in plan), 180)
 
+    def test_generate_study_plan_respects_daily_availability_caps(self):
+        subject = Subject.objects.create(code='CHEM101', name='Chemistry')
+        StudentSubject.objects.create(student=self.user, subject=subject)
+        Task.objects.create(
+            user=self.user,
+            subject=subject,
+            title='Periodic table review',
+            due_date=self.today + timedelta(days=1),
+            status='Pending',
+        )
+
+        available_hours = {
+            self.today: 2,
+            self.today + timedelta(days=1): 1,
+            self.today + timedelta(days=2): 3,
+        }
+
+        plan = generate_study_plan(
+            self.user,
+            start_date=self.today,
+            end_date=self.today + timedelta(days=2),
+            available_hours=available_hours,
+            session_duration=30,
+            daily_limit=180,
+        )
+
+        by_day = {}
+        for item in plan:
+            by_day[item['date']] = by_day.get(item['date'], 0) + item['minutes']
+
+        self.assertLessEqual(by_day.get(self.today, 0), 120)
+        self.assertLessEqual(by_day.get(self.today + timedelta(days=1), 0), 60)
+        self.assertLessEqual(by_day.get(self.today + timedelta(days=2), 0), 180)
+        self.assertTrue(all(item['minutes'] <= 30 for item in plan))
+
     def test_attendance_summary_excludes_excused_and_handles_target_boundaries(self):
         records = [
             Attendance(user=self.user, date=self.today, status='PRESENT'),

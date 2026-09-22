@@ -2026,6 +2026,83 @@ def subject_delete(request, subject_id):
 
 
 @login_required
+def attendance_analytics(request):
+    """Display attendance analytics with per-subject breakdown and warnings."""
+    if request.method != 'GET':
+        return HttpResponse(status=405)
+
+    # Get date range from query params (default to last 30 days)
+    today = timezone.localdate()
+    days_back = int(request.GET.get('days', 30))
+    start_date = today - timedelta(days=days_back)
+
+    # Get user's enrolled subjects
+    enrollments = StudentSubject.objects.filter(
+        student=request.user,
+        is_active=True,
+        subject__is_active=True
+    ).select_related('subject')
+
+    if not enrollments.exists():
+        messages.info(request, 'You are not enrolled in any subjects yet.')
+        return redirect('subject_list')
+
+    # Get attendance records for the date range
+    attendance_records = Attendance.objects.filter(
+        user=request.user,
+        date__gte=start_date,
+        date__lte=today
+    ).select_related('subject')
+
+    # Calculate overall attendance
+    overall_summary = calculate_attendance(attendance_records)
+
+    # Calculate per-subject attendance
+    subject_analytics = []
+    for enrollment in enrollments:
+        subject = enrollment.subject
+        subject_records = attendance_records.filter(subject=subject)
+        subject_summary = calculate_attendance(subject_records)
+
+        # Determine status based on attendance percentage
+        percentage = subject_summary['percentage']
+        if percentage >= 90:
+            status = 'Excellent'
+            status_class = 'success'
+        elif percentage >= 75:
+            status = 'Good'
+            status_class = 'good'
+        elif percentage >= 60:
+            status = 'Needs Improvement'
+            status_class = 'warning'
+        else:
+            status = 'Attention Required'
+            status_class = 'error'
+
+        subject_analytics.append({
+            'subject': subject,
+            'summary': subject_summary,
+            'status': status,
+            'status_class': status_class,
+            'classes_attended': subject_summary['attended_classes'],
+            'classes_missed': subject_summary['scheduled_classes'] - subject_summary['attended_classes'],
+        })
+
+    # Sort by attendance percentage (worst first)
+    subject_analytics.sort(key=lambda x: x['summary']['percentage'])
+
+    context = {
+        'overall_summary': overall_summary,
+        'subject_analytics': subject_analytics,
+        'start_date': start_date,
+        'end_date': today,
+        'days_back': days_back,
+    }
+
+    return render(request, 'attendance/attendance_analytics.html', context)
+
+
+@login_required
 def enrollment_list(request):
     if not require_role(request.user, 'student'):
         return redirect('dashboard')

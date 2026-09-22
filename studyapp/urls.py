@@ -62,6 +62,7 @@ urlpatterns = [
     # Attendance
     path('attendance/', views.attendance, name='attendance'),
     path('attendance/report/', views.attendance_report, name='attendance_report'),
+    path('attendance/analytics/', views.attendance_analytics, name='attendance_analytics'),
     path('attendance/teacher/', views.teacher_attendance, name='teacher_attendance'),
     path('teacher/students/', views.teacher_student_list, name='teacher_student_list'),
     path('teacher/reports/', views.teacher_progress_report, name='teacher_progress_report'),

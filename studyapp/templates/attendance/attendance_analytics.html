@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Analytics{% endblock %}
+{% block header %}📊 Attendance Analytics{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h2>Attendance Analytics</h2>
+        <p>Last {{ days_back }} days ({{ start_date|date:"M d, Y" }} to {{ end_date|date:"M d, Y" }})</p>
+        <a href="{% url 'attendance' %}" class="btn btn-outline">← Mark Today's Attendance</a>
+        <a href="{% url 'attendance_report' %}" class="btn btn-outline">📊 Monthly Report</a>
+    </div>
+
+    {% if subject_analytics %}
+    <div class="analytics-summary">
+        <div class="summary-card">
+            <h3>Overall Attendance</h3>
+            <p class="percentage">{{ overall_summary.percentage }}%</p>
+            <p>{{ overall_summary.attended_classes }}/{{ overall_summary.scheduled_classes }} classes attended</p>
+        </div>
+    </div>
+
+    <div class="subject-attendance">
+        <h3>Per-Subject Breakdown</h3>
+        <div class="subject-grid">
+            {% for subject_data in subject_analytics %}
+            <div class="subject-card {{ subject_data.status_class }}">
+                <div class="subject-info">
+                    <h4>{{ subject_data.subject.name }}</h4>
+                    <div class="attendance-stat">
+                        <span class="label">Attendance:</span>
+                        <span class="value">{{ subject_data.summary.percentage }}%</span>
+                    </div>
+                    <div class="attendance-stat">
+                        <span class="label">Classes:</span>
+                        <span class="value">{{ subject_data.classes_attended }}/{{ subject_data.summary.scheduled_classes }}</span>
+                    </div>
+                    <div class="attendance-stat">
+                        <span class="label">Missed:</span>
+                        <span class="value">{{ subject_data.classes_missed }}</span>
+                    </div>
+                    <div class="status-badge">
+                        Status: {{ subject_data.status }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <h3>No attendance data available</h3>
+        <p>Start marking your attendance to see analytics here.</p>
+        <a href="{% url 'attendance' %}" class="btn btn-primary">Mark Attendance</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* === Container === */
+.analytics-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* === Header === */
+.analytics-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.analytics-header h2 {
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.analytics-header p {
+    color: #5b6e8c;
+    margin-bottom: 1.5rem;
+}
+
+/* === Summary Card === */
+.analytics-summary {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #e9eef3;
+    min-width: 280px;
+}
+
+.summary-card h3 {
+    color: #334155;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.summary-card .percentage {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0.5rem 0;
+}
+
+.summary-card p {
+    color: #5b6e8c;
+    margin: 0.5rem 0;
+}
+
+/* === Subject Attendance === */
+.subject-attendance {
+    background: white;
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #e9eef3;
+}
+
+.subject-attendance h3 {
+    color: #0f172a;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.subject-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.subject-card {
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #f1f5f9;
+}
+
+.subject-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* Status-based styling */
+.subject-card.success {
+    border-color: #bbf7d0;
+    background-color: #f0fdf4;
+}
+
+.subject-card.good {
+    border-color: #dcfce7;
+    background-color: #f0fdf4;
+}
+
+.subject-card.warning {
+    border-color: #fef9c3;
+    background-color: #fefce8;
+}
+
+.subject-card.error {
+    border-color: #fecaca;
+    background-color: #fef2f2;
+}
+
+.subject-card h4 {
+    color: #0f172a;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.attendance-stat {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.75rem 0;
+    padding: 0.5rem;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 12px;
+}
+
+.attendance-stat .label {
+    color: #5b6e8c;
+    font-weight: 500;
+}
+
+.attendance-stat .value {
+    color: #0f172a;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+/* Status badge colors */
+.subject-card.success .status-badge {
+    background: #bbf7d0;
+    color: #15803d;
+}
+
+.subject-card.good .status-badge {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.subject-card.warning .status-badge {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+.subject-card.error .status-badge {
+    background: #fecaca;
+    color: #991b1b;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #5b6e8c;
+}
+
+.empty-state .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: #0f172a;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    margin-bottom: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .analytics-container {
+        padding: 0.5rem;
+    }
+
+    .subject-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-card {
+        padding: 1.5rem;
+    }
+
+    .summary-card .percentage {
+        font-size: 2.5rem;
+    }
+}
+</style>
+{% endblock %}
+{% endblock %}

@@ -161,3 +161,44 @@ def get_student_analytics(user, *, today=None, now=None, recent_days=RECENT_DAYS
         )
     except OperationalError:
         return _legacy_analytics(user, today=today, recent_days=recent_days)
+
+
+def get_task_analytics(user, *, today=None):
+    """Return a compact summary for a user's task workload."""
+    today = today or timezone.localdate()
+    tasks = Task.objects.filter(user=user)
+
+    total_tasks = tasks.count()
+    completed_tasks = tasks.filter(status='Completed').count()
+    overdue_tasks = tasks.filter(status__in=['Pending', 'In Progress']).filter(
+        due_date__lt=today
+    ).count()
+    pending_tasks = tasks.filter(status='Pending').count()
+
+    completion_percentage = round(
+        (completed_tasks / total_tasks) * 100,
+        2,
+    ) if total_tasks else 0.0
+
+    completed_task_times = []
+    for task in tasks.filter(status='Completed').only('created_at', 'completed_at'):
+        if task.completed_at and task.created_at:
+            completed_task_times.append(
+                (task.completed_at - task.created_at).total_seconds() / 3600
+            )
+
+    average_completion_time_hours = (
+        round(sum(completed_task_times) / len(completed_task_times), 2)
+        if completed_task_times
+        else 0.0
+    )
+
+    return {
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'pending_tasks': pending_tasks,
+        'overdue_tasks': overdue_tasks,
+        'completion_percentage': completion_percentage,
+        'task_completion_percent': completion_percentage,
+        'average_completion_time_hours': average_completion_time_hours,
+    }

@@ -10,10 +10,19 @@
      data-attendance-percent="{{ attendance_percent|floatformat:1 }}">
     <div class="card">
         <h3>Task Completion</h3>
-        <p>{{ completed_percent|floatformat:1 }}% completed</p>
+        <p>{{ task_analytics.completion_percentage|floatformat:1 }}% completed</p>
         <div class="progress-bar">
-            <div class="progress" style="width: {{ completed_percent }}%;"></div>
+            <div class="progress" style="width: {{ task_analytics.completion_percentage }}%;"></div>
         </div>
+    </div>
+    <div class="card">
+        <h3>Task Summary</h3>
+        <p>{{ task_analytics.completed_tasks }}/{{ task_analytics.total_tasks }} done</p>
+        <p>{{ task_analytics.overdue_tasks }} overdue · {{ task_analytics.pending_tasks }} pending</p>
+    </div>
+    <div class="card">
+        <h3>Average Completion Time</h3>
+        <p>{{ task_analytics.average_completion_time_hours|floatformat:1 }} hours</p>
     </div>
     <div class="card">
         <h3>Attendance This Month</h3>

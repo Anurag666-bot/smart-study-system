@@ -5,6 +5,8 @@
 <div class="dashboard-cards">
     <div class="card"><h3>📄 Notes</h3><p>{{ notes_count }}</p><a href="{% url 'notes_list' %}">View</a></div>
     <div class="card"><h3>✅ Pending Tasks</h3><p>{{ pending_tasks }}</p><a href="{% url 'task_list' %}">Manage</a></div>
+    <div class="card"><h3>📊 Overdue Tasks</h3><p>{{ task_analytics.overdue_tasks }}</p><a href="{% url 'task_list' %}?status=overdue">Review</a></div>
+    <div class="card"><h3>🎯 Task Completion</h3><p>{{ task_analytics.completion_percentage|floatformat:1 }}%</p><a href="{% url 'analytics' %}">View analytics</a></div>
     <div class="card"><h3>📊 Attendance Today</h3><p>{% if attendance_today and attendance_today.is_present %}✅ Present{% else %}❌ Not marked{% endif %}</p><a href="{% url 'attendance' %}">Mark</a></div>
     <div class="card"><h3>⏱️ Study Hours (30 days)</h3><p>{{ analytics_data.study_minutes_recent }} minutes</p><a href="{% url 'analytics' %}">View analytics</a></div>
     <div class="card"><h3>🔥 Current Streak</h3><p>{{ analytics_data.current_streak }} day{{ analytics_data.current_streak|pluralize }}</p><a href="{% url 'study_session_list' %}">Record session</a></div>

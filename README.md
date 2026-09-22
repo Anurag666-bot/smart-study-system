@@ -82,6 +82,20 @@ Visit `http://127.0.0.1:8000/` in your web browser.
 
 Access the admin panel at `http://127.0.0.1:8000/admin/` using your superuser credentials.
 
+### Security architecture
+
+Smart Study System applies a layered security model based on Django defaults and custom application-level access control.
+
+- Authentication uses Django's built-in login/session system.
+- Authorization is enforced through role checks and policy decorators.
+- RBAC separates student, teacher, and administrator responsibilities.
+- Object-level ownership checks prevent IDOR-style access to tasks, notes, plans, and planner records.
+- CSRF remains enabled and protected through Django middleware and secure cookie configuration.
+- Forms and validators reject malformed or unsafe input before persistence.
+- Session cookies are configured with HttpOnly and SameSite defaults, with secure cookies enabled only for production.
+
+The project includes a dedicated security overview in [docs/security.md](docs/security.md), which is intended for viva explanation and deployment review.
+
 ### Production Deployment
 
 For production deployment, consider:
@@ -90,6 +104,19 @@ For production deployment, consider:
 - Setting up static file serving
 - Configuring environment variables for security
 
+## Security summary
+
+| Threat | Mitigation |
+| --- | --- |
+| Unauthorized access | RBAC |
+| IDOR | Ownership checks |
+| CSRF | Django CSRF middleware |
+| Invalid input | Django forms and validators |
+| Session abuse | Secure session configuration |
+
+## Week 2: Intelligent Task Management
+
+The next phase of the project turns to intelligent task planning and prioritization, building on the validated security baseline above.
 ## Configuration
 
 Key configuration files:

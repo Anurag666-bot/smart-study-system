@@ -240,3 +240,84 @@ def get_task_analytics(user, *, today=None):
         'task_completion_percent': completion_percentage,
         'average_completion_time_hours': average_completion_time_hours,
     }
+
+
+def get_study_session_analytics(user, *, today=None, now=None):
+    """Return comprehensive study session analytics for actual study behavior.
+
+    Measures:
+      - today's study time (minutes)
+      - weekly study time (minutes)
+      - monthly study time (minutes)
+      - average session duration (minutes)
+      - sessions completed (count)
+      - most studied subject (name)
+    """
+    from datetime import date as date_cls
+    
+    now = now or timezone.now()
+    today = today or timezone.localdate(now)
+    
+    # Convert date to aware datetime at midnight
+    if isinstance(today, date_cls) and not isinstance(today, timezone.datetime):
+        now_datetime = timezone.make_aware(
+            timezone.datetime.combine(today, timezone.datetime.min.time())
+        )
+    else:
+        now_datetime = today
+
+    # Define time windows
+    today_start = now_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = today_start + timedelta(days=1)
+
+    week_start = today_start - timedelta(days=today_start.weekday())  # Monday
+    month_start = today_start.replace(day=1)
+
+    # Get all sessions within the required windows
+    all_sessions = StudySession.objects.filter(
+        user=user,
+        started_at__gte=month_start,
+        started_at__lt=today_end,
+    ).select_related('subject').order_by('started_at')
+
+    # Categorize sessions by time window
+    today_sessions = [s for s in all_sessions if today_start <= s.started_at < today_end]
+    week_sessions = [s for s in all_sessions if week_start <= s.started_at < today_end]
+    month_sessions = all_sessions
+
+    # Calculate time metrics
+    today_study_time = sum(_session_minutes(session) for session in today_sessions)
+    weekly_study_time = sum(_session_minutes(session) for session in week_sessions)
+    monthly_study_time = sum(_session_minutes(session) for session in month_sessions)
+
+    # Calculate sessions count
+    sessions_completed = len(month_sessions)
+
+    # Calculate average session duration
+    if month_sessions:
+        total_minutes = sum(_session_minutes(session) for session in month_sessions)
+        average_session_duration = round(total_minutes / len(month_sessions), 2) if total_minutes > 0 else 0.0
+    else:
+        average_session_duration = 0.0
+
+    # Find most studied subject
+    subject_study_time = defaultdict(int)
+    for session in month_sessions:
+        subject_name = session.subject.name if session.subject else 'General'
+        subject_study_time[subject_name] += _session_minutes(session)
+
+    most_studied_subject = None
+    if subject_study_time:
+        most_studied_subject = max(subject_study_time.items(), key=lambda x: x[1])[0]
+
+    return {
+        'today_study_time_minutes': today_study_time,
+        'weekly_study_time_minutes': weekly_study_time,
+        'monthly_study_time_minutes': monthly_study_time,
+        'average_session_duration_minutes': average_session_duration,
+        'sessions_completed': sessions_completed,
+        'most_studied_subject': most_studied_subject,
+        'subject_breakdown': dict(subject_study_time),
+        'today_sessions_count': len(today_sessions),
+        'week_sessions_count': len(week_sessions),
+    }

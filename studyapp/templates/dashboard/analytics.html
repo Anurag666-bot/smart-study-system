@@ -32,6 +32,48 @@
         </div>
     </div>
 </div>
+
+<div class="content-card">
+    <h2>📚 Study Session Analytics</h2>
+    <div class="analytics-grid">
+        <div class="metric-box">
+            <h4>Today's Study Time</h4>
+            <p class="metric-value">{{ study_session_analytics.today_study_time_minutes }} min</p>
+            <p class="metric-sub">{{ study_session_analytics.today_sessions_count }} session{{ study_session_analytics.today_sessions_count|pluralize }}</p>
+        </div>
+        <div class="metric-box">
+            <h4>Weekly Study Time</h4>
+            <p class="metric-value">{{ study_session_analytics.weekly_study_time_minutes }} min</p>
+            <p class="metric-sub">{{ study_session_analytics.week_sessions_count }} session{{ study_session_analytics.week_sessions_count|pluralize }}</p>
+        </div>
+        <div class="metric-box">
+            <h4>Monthly Study Time</h4>
+            <p class="metric-value">{{ study_session_analytics.monthly_study_time_minutes }} min</p>
+            <p class="metric-sub">{{ study_session_analytics.sessions_completed }} total session{{ study_session_analytics.sessions_completed|pluralize }}</p>
+        </div>
+        <div class="metric-box">
+            <h4>Average Session Duration</h4>
+            <p class="metric-value">{{ study_session_analytics.average_session_duration_minutes|floatformat:1 }} min</p>
+        </div>
+    </div>
+    
+    {% if study_session_analytics.most_studied_subject %}
+        <div class="most-studied">
+            <h4>Most Studied Subject</h4>
+            <p><strong>{{ study_session_analytics.most_studied_subject }}</strong></p>
+        </div>
+    {% endif %}
+    
+    {% if study_session_analytics.subject_breakdown %}
+        <h4>Subject Breakdown (This Month)</h4>
+        <ul class="subject-list">
+        {% for subject, minutes in study_session_analytics.subject_breakdown.items %}
+            <li>{{ subject }} — {{ minutes }} minutes</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+</div>
+
 <div class="content-card">
     <h2>Recent activity ({{ analytics_data.window_days }} days)</h2>
     <p>{{ analytics_data.study_minutes_recent }} minutes across {{ analytics_data.study_sessions_recent }} recorded sessions.</p>

@@ -18,7 +18,7 @@ The project currently has the following Django apps configured in `core/settings
 1. `django.contrib.admin`
 2. `django.contrib.auth`
 3. `django.contrib.contenttypes`
-4. `django.contrib.sessions`
+4. `django.contrib.sessions` 
 5. `django.contrib.messages`
 6. `django.contrib.staticfiles`
 7. `studyapp`

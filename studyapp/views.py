@@ -90,7 +90,7 @@ from .forms import (
 from .algorithms.textrank_summary import textrank_summary
 from .algorithms.tfidf_search import tfidf_search
 from .algorithms.priority_scheduler import prioritize_tasks
-from .services.analytics import get_student_analytics, get_task_analytics
+from .services.analytics import get_student_analytics, get_task_analytics, get_study_session_analytics
 from .services.attendance import calculate_attendance
 from .services.planner import build_adaptive_plan
 from .services.priority import calculate_priority_score
@@ -386,9 +386,11 @@ def profile_edit(request):
 def analytics(request):
     analytics_data = get_student_analytics(request.user)
     task_analytics = get_task_analytics(request.user)
+    study_session_analytics = get_study_session_analytics(request.user)
     return render(request, 'dashboard/analytics.html', {
         'analytics_data': analytics_data,
         'task_analytics': task_analytics,
+        'study_session_analytics': study_session_analytics,
         'completed_percent': analytics_data['task_completion_percent'],
         'attendance_percent': analytics_data['attendance_percent_recent'],
     })
